@@ -218,10 +218,15 @@
 
   // ============================================
   // ============================================
+  // ============================================
   // GRAPH
   // ============================================
   let clusterActive = false;
+  let currentDensity = 'normal';
   const toggleClusterBtn = document.getElementById('toggle-cluster-btn');
+  const densityNormalBtn = document.getElementById('density-normal-btn');
+  const densityTightBtn  = document.getElementById('density-tight-btn');
+  const densitySuperBtn  = document.getElementById('density-super-btn');
 
   function autoLoadGraph() {
     if (allEntries.length === 0) return;
@@ -233,8 +238,38 @@
       if (toggleClusterBtn) toggleClusterBtn.style.display = 'none';
     }
 
-    renderGraph('graph-container', allEntries, lastGroups, clusterActive);
+    renderGraph('graph-container', allEntries, lastGroups, clusterActive, currentDensity);
   }
+
+  function setDensity(density) {
+    currentDensity = density;
+    
+    // Aktiven Button stylen und die anderen zurücksetzen
+    [densityNormalBtn, densityTightBtn, densitySuperBtn].forEach(btn => {
+      if (btn) {
+        btn.classList.remove('active');
+        btn.style.background = 'transparent';
+        btn.style.boxShadow = 'none';
+      }
+    });
+
+    let activeBtn;
+    if (density === 'normal') activeBtn = densityNormalBtn;
+    else if (density === 'tight') activeBtn = densityTightBtn;
+    else if (density === 'super') activeBtn = densitySuperBtn;
+
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.style.background = 'var(--white)';
+      activeBtn.style.boxShadow = 'var(--shadow-sm)';
+    }
+
+    autoLoadGraph();
+  }
+
+  densityNormalBtn && densityNormalBtn.addEventListener('click', () => setDensity('normal'));
+  densityTightBtn && densityTightBtn.addEventListener('click', () => setDensity('tight'));
+  densitySuperBtn && densitySuperBtn.addEventListener('click', () => setDensity('super'));
 
   loadGraphBtn && loadGraphBtn.addEventListener('click', () => {
     if (allEntries.length === 0) {

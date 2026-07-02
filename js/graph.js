@@ -19,8 +19,9 @@
    * @param {Array}  entries     - Firestore-Einträge
    * @param {Array}  groups      - Berechnete Zeltgruppen (optional, für Farben)
    * @param {boolean} clusterActive - Ob Gruppen zentriert gebündelt werden sollen
+   * @param {string} density - Dichte des Graphen ('normal', 'tight', 'super')
    */
-  window.renderGraph = function (containerId, entries, groups = [], clusterActive = false) {
+  window.renderGraph = function (containerId, entries, groups = [], clusterActive = false, density = 'normal') {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -137,14 +138,26 @@
     addMarker('arrow-normal', '#aaaaaa');
     addMarker('arrow-mutual', '#E8001E');
 
+    // Dichte-Einstellungen für Federkräfte berechnen
+    let linkDistance = 120;
+    let chargeStrength = -280;
+
+    if (density === 'tight') {
+      linkDistance = 65;
+      chargeStrength = -150;
+    } else if (density === 'super') {
+      linkDistance = 35;
+      chargeStrength = -80;
+    }
+
     // --- Force Simulation ---
     const simulation = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(linksArr)
         .id(d => d.id)
-        .distance(clusterActive ? 60 : 120)
+        .distance(linkDistance)
         .strength(0.6)
       )
-      .force('charge', d3.forceManyBody().strength(clusterActive ? -180 : -280))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(40));
 
