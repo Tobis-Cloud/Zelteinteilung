@@ -379,7 +379,11 @@
     infoTooltipContent.classList.toggle('hidden');
   });
 
-  // Schließe den Tooltip bei Klick außerhalb
+  // Schließe den Tooltip bei Klick auf den Tooltip selbst oder außerhalb
+  infoTooltipContent && infoTooltipContent.addEventListener('click', () => {
+    infoTooltipContent.classList.add('hidden');
+  });
+
   document.addEventListener('click', (e) => {
     if (infoTooltipContent && !infoTooltipContent.classList.contains('hidden')) {
       if (!infoTooltipContent.contains(e.target) && e.target !== infoTooltipBtn) {
