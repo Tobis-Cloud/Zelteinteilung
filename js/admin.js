@@ -28,6 +28,7 @@
   const statTotal    = document.getElementById('stat-total');
   const statWith     = document.getElementById('stat-with-wishes');
   const statWithout  = document.getElementById('stat-without-wishes');
+  const statFulfillmentRate = document.getElementById('stat-fulfillment-rate');
 
   // Tabelle
   const tableBody    = document.getElementById('entries-tbody');
@@ -173,6 +174,37 @@
     if (statTotal)   statTotal.textContent   = total;
     if (statWith)    statWith.textContent    = withWish;
     if (statWithout) statWithout.textContent = without;
+
+    if (statFulfillmentRate) {
+      if (lastGroups && lastGroups.length > 0) {
+        let totalWishes = 0;
+        let fulfilledWishes = 0;
+
+        lastGroups.forEach(g => {
+          g.members.forEach(m => {
+            const memberKey = makeKey(m.vorname, m.nachname);
+            const entry = allEntries.find(e => makeKey(e.vorname, e.nachname) === memberKey);
+            if (entry) {
+              for (let w = 1; w <= 3; w++) {
+                const wv = entry[`wunsch${w}_vorname`];
+                const wn = entry[`wunsch${w}_nachname`];
+                if (wv && wn) {
+                  totalWishes++;
+                  const wKey = makeKey(wv, wn);
+                  const isFulfilled = g.members.some(other => makeKey(other.vorname, other.nachname) === wKey);
+                  if (isFulfilled) fulfilledWishes++;
+                }
+              }
+            }
+          });
+        });
+
+        const rate = totalWishes > 0 ? Math.round((fulfilledWishes / totalWishes) * 100) : 100;
+        statFulfillmentRate.textContent = `${rate}%`;
+      } else {
+        statFulfillmentRate.textContent = '–';
+      }
+    }
   }
 
   // ============================================
@@ -573,11 +605,14 @@
               // Prüfen, ob der Wunschpartner im selben Zelt sitzt
               const isFulfilled = g.members.some(other => makeKey(other.vorname, other.nachname) === wKey);
               
+              const compactLastName = wn ? ` ${esc(wn[0])}.` : '';
+              const symbol = isFulfilled ? '✓' : '✗';
               wishesHtml.push(`
                 <span class="wish-badge" 
                       data-target-key="${wKey}" 
-                      style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;font-size:0.6rem;padding:1px 5px;border-radius:10px;background:${isFulfilled ? '#dcfce7' : '#fee2e2'};color:${isFulfilled ? '#15803d' : '#b91c1c'};border:1px solid ${isFulfilled ? '#bbf7d0' : '#fecaca'};">
-                  ${isFulfilled ? '✅' : '❌'} ${esc(wv)} ${esc(wn)}
+                      title="${esc(wv)} ${esc(wn)}"
+                      style="cursor:pointer;display:inline-flex;align-items:center;gap:2px;font-size:0.58rem;padding:1px 4px;border-radius:4px;background:${isFulfilled ? '#dcfce7' : '#fee2e2'};color:${isFulfilled ? '#15803d' : '#b91c1c'};font-weight:500;border:1px solid ${isFulfilled ? '#bbf7d0' : '#fecaca'};">
+                  ${symbol} ${esc(wv)}${compactLastName}
                 </span>
               `);
             }
@@ -593,11 +628,11 @@
               ${isEditing ? 'draggable="true"' : ''} 
               data-member-key="${memberKey}" 
               data-group-index="${i}"
-              style="padding:6px 8px;margin:5px 0;border-radius:var(--radius-sm);background:var(--white);border:1.5px solid var(--gray-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:5px;${isEditing ? 'cursor:move;border-style:dashed;border-color:var(--gray-400);' : ''}">
-            <div class="member-name-row" style="display:flex;justify-content:space-between;align-items:center;">
-              <span class="member-name" style="font-weight:600;font-size:0.7rem;color:var(--gray-900);">${esc(m.vorname)} ${esc(m.nachname)}</span>
-            </div>
-            <div class="wishes-list" style="display:flex;flex-wrap:wrap;gap:3px;">
+              style="padding:3px 6px;margin:3px 0;border-radius:3px;background:var(--white);border:1px solid var(--gray-200);box-shadow:var(--shadow-xs);display:flex;align-items:center;justify-content:space-between;gap:4px;${isEditing ? 'cursor:move;border-style:dashed;border-color:var(--gray-400);' : ''}">
+            <span class="member-name" style="font-weight:600;font-size:0.68rem;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px;" title="${esc(m.vorname)} ${esc(m.nachname)}">
+              ${esc(m.vorname)} ${m.nachname ? esc(m.nachname[0]) + '.' : ''}
+            </span>
+            <div class="wishes-list" style="display:flex;gap:2px;flex-shrink:0;">
               ${wishesText}
             </div>
           </li>
@@ -621,6 +656,7 @@
         </div>
       `;
     }).join('');
+    renderStats(); // Wunscherfüllungsquote live aktualisieren!
   }
 
   // ============================================

@@ -856,7 +856,7 @@ input::placeholder {
   background: var(--white);
   border: 2px solid var(--gray-300);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 10px 12px;
   transition: border-color var(--transition);
 }
 
@@ -865,11 +865,11 @@ input::placeholder {
 }
 
 .group-card__title {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--black);
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1.5px solid var(--gray-100);
   display: flex;
   align-items: center;
