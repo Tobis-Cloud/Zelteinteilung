@@ -44,6 +44,7 @@
   const calcGroupsBtn       = document.getElementById('calc-groups-btn');
   const groupsGrid          = document.getElementById('groups-grid');
   const exportGroupsBtn     = document.getElementById('export-groups-btn');
+  const fullscreenGroupsBtn = document.getElementById('fullscreen-groups-btn');
 
   // Graph Overrides & Tools
   const connSelect1 = document.getElementById('conn-select-1');
@@ -438,6 +439,20 @@
   // Resize-Verhalten im Vollbildmodus
   document.addEventListener('fullscreenchange', () => {
     autoLoadGraph();
+  });
+
+  // Vollbildmodus für Zeltgruppen umschalten
+  fullscreenGroupsBtn && fullscreenGroupsBtn.addEventListener('click', () => {
+    const tabGroups = document.getElementById('tab-groups');
+    if (tabGroups) {
+      if (!document.fullscreenElement) {
+        tabGroups.requestFullscreen().catch(err => {
+          console.error(`Fehler beim Vollbildmodus für Zeltgruppen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
   });
 
   // Dichte-Schalter binden

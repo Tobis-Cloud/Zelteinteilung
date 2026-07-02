@@ -221,35 +221,36 @@
         <div id="tab-groups" class="tab-panel" role="tabpanel">
           <div class="toolbar">
             <div class="toolbar__title">Zeltgruppen-Vorschlag</div>
-            <div class="toolbar__actions">
+            <div class="toolbar__actions" style="display:flex;gap:8px;">
               <button id="export-groups-btn" class="btn btn--secondary btn--sm" disabled>
                 📥 Gruppen als Excel exportieren
               </button>
+              <button id="fullscreen-groups-btn" class="btn btn--outline btn--sm">
+                🖥️ Vollbild
+              </button>
             </div>
           </div>
-
-
 
           <div class="group-controls" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;background:var(--gray-50);padding:16px;border-radius:var(--radius);border:1.5px solid var(--gray-200);margin-bottom:20px;">
             <div class="form-group" style="margin-bottom:0;">
               <label for="calc-mode">Berechnungsmodus</label>
               <select id="calc-mode" style="padding:10px;font-size:0.875rem;border:1px solid var(--gray-300);border-radius:var(--radius-sm);outline:none;background:var(--white);">
                 <option value="size">Max. Zeltgröße vorgeben</option>
-                <option value="count">Feste Zeltanzahl vorgeben</option>
+                <option value="count" selected>Feste Zeltanzahl vorgeben</option>
               </select>
             </div>
 
             <!-- Inputs für Zeltgröße -->
-            <div id="size-mode-inputs" class="form-group" style="margin-bottom:0;display:block;">
+            <div id="size-mode-inputs" class="form-group" style="margin-bottom:0;display:none;">
               <label for="zelt-groesse">Max. Kinder pro Zelt</label>
               <input type="number" id="zelt-groesse" min="2" max="20" value="5" style="width:120px;padding:10px;" />
             </div>
 
             <!-- Inputs für Zeltanzahl -->
-            <div id="count-mode-inputs" class="form-group" style="margin-bottom:0;display:none;gap:12px;">
+            <div id="count-mode-inputs" class="form-group" style="margin-bottom:0;display:flex;gap:12px;">
               <div style="display:inline-block;margin-right:12px;">
                 <label for="zelt-anzahl">Anzahl Zelte</label>
-                <input type="number" id="zelt-anzahl" min="1" max="50" value="10" style="width:100px;padding:10px;" />
+                <input type="number" id="zelt-anzahl" min="1" max="50" value="5" style="width:100px;padding:10px;" />
               </div>
               <div style="display:inline-block;">
                 <label for="zelt-variation">Max. Variation (Diff)</label>
@@ -269,7 +270,7 @@
 
           <div id="groups-grid" class="group-grid">
             <p style="color:var(--gray-500);font-size:0.9rem;">
-              Gib die Zeltgröße ein und klicke auf „Gruppen berechnen".
+              Wähle den Modus und klicke auf „Berechnen".
             </p>
           </div>
         </div>
