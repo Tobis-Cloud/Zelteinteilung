@@ -211,6 +211,12 @@
             </label>
           </div>
 
+          <!-- Honeypot Feld für Spam-Schutz (für Menschen unsichtbar) -->
+          <div style="display:none !important;" aria-hidden="true">
+            <label for="confirm-phone-number">Bitte dieses Feld leer lassen:</label>
+            <input type="text" id="confirm-phone-number" name="confirm-phone-number" tabindex="-1" autocomplete="off" />
+          </div>
+
           <!-- Submit -->
           <button type="submit" id="submit-btn" class="btn btn--primary">
             <span class="btn-spinner"></span>

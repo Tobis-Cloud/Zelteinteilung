@@ -144,6 +144,14 @@
     e.preventDefault();
     hideAlert();
 
+    // Honeypot-Schutz gegen Bots
+    const honeypot = document.getElementById('confirm-phone-number');
+    if (honeypot && honeypot.value.trim() !== '') {
+      // Stiller Erfolg: leitet den Bot weiter, ohne in die DB zu schreiben
+      window.location.href = 'success.html';
+      return;
+    }
+
     const data = getFormData();
     const error = validate(data);
     if (error) {
