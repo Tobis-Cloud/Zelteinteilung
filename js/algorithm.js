@@ -13,12 +13,13 @@
  * 4. Fülle kleine Gruppen mit Einzelkindern auf
  *
  * @param {Object} overrides - Manuelle Verbindungs-Overrides { broken: [], added: [] }
+ * @param {string} mode - Berechnungsmodus ('size' oder 'count')
+ * @param {number} numTents - Feste Anzahl an Zelten (für Modus 'count')
+ * @param {number} maxVar - Maximale Größenvariation (für Modus 'count')
  * @returns {Array} - Array von Zeltgruppen [{name, members: [{vorname, nachname}]}]
  */
-window.calculateGroups = function (entries, zeltGroesse, overrides = { broken: [], added: [] }) {
+window.calculateGroups = function (entries, zeltGroesse, overrides = { broken: [], added: [] }, mode = 'size', numTents = 10, maxVar = 1) {
   if (!entries || entries.length === 0) return [];
-
-  const size = Math.max(2, parseInt(zeltGroesse) || 5);
 
   const formatPartner = (v, n) => {
     if (!v && !n) return null;
@@ -54,6 +55,11 @@ window.calculateGroups = function (entries, zeltGroesse, overrides = { broken: [
   const childKeys = Array.from(allChildren.keys());
   const n = childKeys.length;
   if (n === 0) return [];
+
+  // Zeltkapazität dynamisch je nach Modus berechnen
+  const size = mode === 'size'
+    ? Math.max(2, parseInt(zeltGroesse) || 5)
+    : Math.ceil(n / (parseInt(numTents) || 10)) + Math.floor((parseInt(maxVar) || 1) / 2);
 
   // --- 2. Union-Find Datenstruktur ---
   const parent = {};
@@ -140,37 +146,101 @@ window.calculateGroups = function (entries, zeltGroesse, overrides = { broken: [
     }
   });
 
-  // --- 6. Kleine Gruppen zusammenführen ---
-  const finalGroups = [];
-  const smallGroups = [];
+  // --- 6. Kleine Gruppen zusammenführen / Zeltanzahl ausbalancieren ---
+  let finalGroups = [];
 
-  groups.forEach(g => {
-    if (g.length < Math.ceil(size / 2)) {
-      smallGroups.push(...g);
-    } else {
-      finalGroups.push(g);
-    }
-  });
+  if (mode === 'size') {
+    const smallGroups = [];
+    groups.forEach(g => {
+      if (g.length < Math.ceil(size / 2)) {
+        smallGroups.push(...g);
+      } else {
+        finalGroups.push(g);
+      }
+    });
 
-  // Kleine Gruppen/Einzelkinder auffüllen
-  if (smallGroups.length > 0) {
-    // Verteile auf bestehende Gruppen, die noch Platz haben
-    let idx = 0;
-    while (smallGroups.length > 0) {
-      const child = smallGroups.shift();
-      // Finde Gruppe mit Platz
-      let placed = false;
-      for (let i = 0; i < finalGroups.length; i++) {
-        if (finalGroups[i].length < size) {
-          finalGroups[i].push(child);
-          placed = true;
-          break;
+    // Kleine Gruppen/Einzelkinder auffüllen
+    if (smallGroups.length > 0) {
+      while (smallGroups.length > 0) {
+        const child = smallGroups.shift();
+        let placed = false;
+        for (let i = 0; i < finalGroups.length; i++) {
+          if (finalGroups[i].length < size) {
+            finalGroups[i].push(child);
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          finalGroups.push([child]);
         }
       }
-      if (!placed) {
-        finalGroups.push([child]);
+    }
+  } else {
+    // Feste Zeltanzahl-Modus (count)
+    const K = parseInt(numTents) || 10;
+    const v = parseInt(maxVar) || 1;
+    const avg = n / K;
+    const sMin = Math.max(2, Math.floor(avg) - Math.ceil(v / 2));
+    const sMax = Math.ceil(avg) + Math.floor(v / 2);
+
+    // 1. Wenn mehr Gruppen als Zelte: kleinste zusammenführen
+    while (groups.length > K) {
+      groups.sort((a, b) => a.length - b.length);
+      const smallest = groups.shift();
+      groups[0].push(...smallest);
+    }
+
+    // 2. Wenn weniger Gruppen als Zelte: größte aufteilen
+    while (groups.length < K) {
+      groups.sort((a, b) => b.length - a.length);
+      const largest = groups.shift();
+      const half = Math.ceil(largest.length / 2);
+      const g1 = largest.slice(0, half);
+      const g2 = largest.slice(half);
+      groups.push(g1, g2);
+    }
+
+    // 3. Ausbalancieren der Zeltgrößen gemäß sMin und sMax
+    let changed = true;
+    let iterations = 0;
+    while (changed && iterations < 150) {
+      changed = false;
+      iterations++;
+
+      groups.sort((a, b) => b.length - a.length);
+      const largest = groups[0];
+
+      groups.sort((a, b) => a.length - b.length);
+      const smallest = groups[0];
+
+      if (largest.length > sMax || smallest.length < sMin) {
+        if (largest.length <= sMin) break; // Kann nicht mehr weggenommen werden
+
+        // Schwächstes Mitglied (geringste Verbindungsstärke zur Gruppe) verschieben
+        let bestIndex = 0;
+        let minStrength = Infinity;
+        for (let i = 0; i < largest.length; i++) {
+          let strength = 0;
+          const child = largest[i];
+          largest.forEach(other => {
+            if (child.key !== other.key) {
+              const edgeKey = [child.key, other.key].sort().join('||');
+              strength += edgeWeights.get(edgeKey) || 0;
+            }
+          });
+          if (strength < minStrength) {
+            minStrength = strength;
+            bestIndex = i;
+          }
+        }
+
+        const childToMove = largest.splice(bestIndex, 1)[0];
+        smallest.push(childToMove);
+        changed = true;
       }
     }
+    finalGroups = groups;
   }
 
   // --- 7. Gruppen benennen und zurückgeben ---

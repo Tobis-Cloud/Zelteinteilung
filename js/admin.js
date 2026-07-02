@@ -428,17 +428,56 @@
   });
 
   // ============================================
-  // GRUPPEN BERECHNEN
+  // GRUPPEN BERECHNEN & BEARBEITUNG
   // ============================================
-  calcGroupsBtn && calcGroupsBtn.addEventListener('click', () => {
-    const size = parseInt(zeltGroesseInput?.value) || 5;
+  let isEditing = false;
+  const calcMode = document.getElementById('calc-mode');
+  const sizeModeInputs = document.getElementById('size-mode-inputs');
+  const countModeInputs = document.getElementById('count-mode-inputs');
+  const editModeBtn = document.getElementById('edit-mode-btn');
 
+  // Modus umschalten
+  calcMode && calcMode.addEventListener('change', () => {
+    if (calcMode.value === 'size') {
+      if (sizeModeInputs) sizeModeInputs.style.display = 'block';
+      if (countModeInputs) countModeInputs.style.display = 'none';
+    } else {
+      if (sizeModeInputs) sizeModeInputs.style.display = 'none';
+      if (countModeInputs) countModeInputs.style.display = 'flex';
+    }
+  });
+
+  // Bearbeitungsmodus aktivieren / beenden
+  editModeBtn && editModeBtn.addEventListener('click', () => {
+    isEditing = !isEditing;
+    if (isEditing) {
+      editModeBtn.classList.remove('btn--outline');
+      editModeBtn.classList.add('btn--primary');
+      editModeBtn.innerHTML = '✅ Bearbeiten beenden';
+    } else {
+      editModeBtn.classList.remove('btn--primary');
+      editModeBtn.classList.add('btn--outline');
+      editModeBtn.innerHTML = '✏️ Bearbeiten';
+    }
+    renderGroups(lastGroups);
+  });
+
+  calcGroupsBtn && calcGroupsBtn.addEventListener('click', () => {
     if (allEntries.length === 0) {
       alert('Keine Daten für die Gruppenberechnung vorhanden.');
       return;
     }
 
-    lastGroups = calculateGroups(allEntries, size, manualOverrides);
+    const mode = calcMode?.value || 'size';
+    if (mode === 'size') {
+      const size = parseInt(zeltGroesseInput?.value) || 5;
+      lastGroups = calculateGroups(allEntries, size, manualOverrides, 'size');
+    } else {
+      const numTents = parseInt(document.getElementById('zelt-anzahl')?.value) || 10;
+      const maxVar = parseInt(document.getElementById('zelt-variation')?.value) || 1;
+      lastGroups = calculateGroups(allEntries, null, manualOverrides, 'count', numTents, maxVar);
+    }
+
     renderGroups(lastGroups);
 
     // Bündeln-Button im Graph aktivieren und anzeigen
@@ -451,9 +490,25 @@
       autoLoadGraph();
     }
 
-    // Export-Button aktivieren
+    // Export-Button & Bearbeitungsmodus aktivieren
     if (exportGroupsBtn) exportGroupsBtn.disabled = false;
+    if (editModeBtn) editModeBtn.disabled = false;
   });
+
+  // Gruppen stillschweigend neu berechnen (für automatische Updates)
+  function recalculateGroupsSilently() {
+    if (allEntries.length === 0) return;
+    const mode = calcMode?.value || 'size';
+    if (mode === 'size') {
+      const size = parseInt(zeltGroesseInput?.value) || 5;
+      lastGroups = calculateGroups(allEntries, size, manualOverrides, 'size');
+    } else {
+      const numTents = parseInt(document.getElementById('zelt-anzahl')?.value) || 10;
+      const maxVar = parseInt(document.getElementById('zelt-variation')?.value) || 1;
+      lastGroups = calculateGroups(allEntries, null, manualOverrides, 'count', numTents, maxVar);
+    }
+    renderGroups(lastGroups);
+  }
 
   function renderGroups(groups) {
     if (!groupsGrid) return;
@@ -471,30 +526,57 @@
     groupsGrid.innerHTML = groups.map((g, i) => {
       const color = colors[i % colors.length];
       const membersHtml = g.members.map(m => {
-        const wishesText = m.wishes && m.wishes.length > 0
-          ? m.wishes.map(w => `<span class="badge badge--red" style="margin:1px;font-size:0.65rem;padding:1px 6px;">${esc(w)}</span>`).join(' ')
-          : `<span class="badge badge--gray" style="font-size:0.65rem;padding:1px 6px;">keine Wünsche</span>`;
+        const memberKey = makeKey(m.vorname, m.nachname);
+        
+        // Finden des passenden DB-Eintrags für Wünsche
+        const entry = allEntries.find(e => makeKey(e.vorname, e.nachname) === memberKey);
+        const wishesHtml = [];
+
+        if (entry) {
+          for (let w = 1; w <= 3; w++) {
+            const wv = entry[`wunsch${w}_vorname`];
+            const wn = entry[`wunsch${w}_nachname`];
+            if (wv && wn) {
+              const wKey = makeKey(wv, wn);
+              // Prüfen, ob der Wunschpartner im selben Zelt sitzt
+              const isFulfilled = g.members.some(other => makeKey(other.vorname, other.nachname) === wKey);
+              
+              wishesHtml.push(`
+                <span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;padding:2px 6px;border-radius:10px;background:${isFulfilled ? '#dcfce7' : '#fee2e2'};color:${isFulfilled ? '#15803d' : '#b91c1c'};border:1px solid ${isFulfilled ? '#bbf7d0' : '#fecaca'};">
+                  ${isFulfilled ? '✅' : '❌'} ${esc(wv)} ${esc(wn)}
+                </span>
+              `);
+            }
+          }
+        }
+
+        const wishesText = wishesHtml.length > 0
+          ? wishesHtml.join(' ')
+          : `<span style="font-size:0.65rem;color:var(--gray-400);">keine Wünsche</span>`;
 
         return `
-          <li class="member-item">
+          <li class="member-item" 
+              ${isEditing ? 'draggable="true"' : ''} 
+              data-member-key="${memberKey}" 
+              data-group-index="${i}"
+              style="${isEditing ? 'cursor:move;border:1px dashed var(--gray-400);margin:6px 0;padding:6px;border-radius:var(--radius-sm);background:var(--white);' : ''}">
             <div class="member-name-row">
-              <span class="member-name">${esc(m.vorname)} ${esc(m.nachname)}</span>
-              <span class="info-toggle-btn" title="Wünsche anzeigen/ausblenden">👁️</span>
+              <span class="member-name" style="font-weight:600;">${esc(m.vorname)} ${esc(m.nachname)}</span>
+              <span class="info-toggle-btn" title="Wünsche anzeigen/ausblenden" style="cursor:pointer;opacity:0.6;">👁️</span>
             </div>
-            <div class="member-wishes-detail hidden">
-              <div class="wishes-title">Wunschpartner:</div>
-              <div class="wishes-list">${wishesText}</div>
+            <div class="member-wishes-detail hidden" style="margin-top:6px;">
+              <div class="wishes-list" style="display:flex;flex-wrap:wrap;gap:4px;">${wishesText}</div>
             </div>
           </li>
         `;
       }).join('');
 
       return `
-        <div class="group-card">
+        <div class="group-card" data-group-index="${i}">
           <div class="group-card__title">
             <div class="group-card__dot" style="background:${color};"></div>
             ${esc(g.name)}
-            <span class="badge badge--gray" style="margin-left:auto;">${g.size} Kinder</span>
+            <span class="badge badge--gray" style="margin-left:auto;">${g.size} Jungs</span>
           </div>
           <ul class="group-card__members">
             ${membersHtml}
@@ -506,6 +588,14 @@
 
   // Klick-Event Handler für Zeltgruppen-Mitglieder (Detail-Wünsche ein-/ausblenden)
   groupsGrid && groupsGrid.addEventListener('click', (e) => {
+    // Falls Drag-and-Drop aktiv ist, nicht das Umschalten ausführen
+    if (isEditing && e.target.closest('.member-item')) {
+      // Wenn das Auge explizit geklickt wurde, trotzdem anzeigen
+      if (!e.target.classList.contains('info-toggle-btn')) {
+        return;
+      }
+    }
+    
     const memberItem = e.target.closest('.member-item');
     if (!memberItem) return;
 
@@ -516,10 +606,92 @@
   });
 
   // ============================================
+  // DRAG & DROP FÜR MANUELLES SCHIEBEN
+  // ============================================
+  let draggedMemberKey = null;
+  let draggedSourceGroupIndex = null;
+
+  if (groupsGrid) {
+    // Drag Start
+    groupsGrid.addEventListener('dragstart', (e) => {
+      if (!isEditing) return;
+      const item = e.target.closest('.member-item');
+      if (!item) return;
+      
+      draggedMemberKey = item.dataset.memberKey;
+      draggedSourceGroupIndex = parseInt(item.dataset.groupIndex);
+      e.dataTransfer.effectAllowed = 'move';
+      item.style.opacity = '0.4';
+    });
+
+    groupsGrid.addEventListener('dragend', (e) => {
+      const item = e.target.closest('.member-item');
+      if (item) item.style.opacity = '1';
+    });
+
+    // Drag Over
+    groupsGrid.addEventListener('dragover', (e) => {
+      if (!isEditing) return;
+      e.preventDefault();
+      const groupCard = e.target.closest('.group-card');
+      if (groupCard) {
+        groupCard.style.borderColor = 'var(--primary-color)';
+        groupCard.style.background = 'var(--gray-100)';
+      }
+    });
+
+    groupsGrid.addEventListener('dragleave', (e) => {
+      const groupCard = e.target.closest('.group-card');
+      if (groupCard) {
+        groupCard.style.borderColor = '';
+        groupCard.style.background = '';
+      }
+    });
+
+    // Drop
+    groupsGrid.addEventListener('drop', (e) => {
+      if (!isEditing) return;
+      e.preventDefault();
+      
+      const groupCard = e.target.closest('.group-card');
+      if (!groupCard) return;
+      groupCard.style.borderColor = '';
+      groupCard.style.background = '';
+
+      const targetGroupIndex = parseInt(groupCard.dataset.groupIndex);
+      if (draggedSourceGroupIndex === null || draggedSourceGroupIndex === targetGroupIndex) return;
+
+      // Mitglied im Array von Quelle nach Ziel verschieben
+      const sourceGroup = lastGroups[draggedSourceGroupIndex];
+      const targetGroup = lastGroups[targetGroupIndex];
+
+      const memberIndex = sourceGroup.members.findIndex(m => makeKey(m.vorname, m.nachname) === draggedMemberKey);
+      if (memberIndex === -1) return;
+
+      const [member] = sourceGroup.members.splice(memberIndex, 1);
+      targetGroup.members.push(member);
+
+      // Größen anpassen
+      sourceGroup.size = sourceGroup.members.length;
+      targetGroup.size = targetGroup.members.length;
+
+      // Gruppen neu rendern & Graph-Knoten neu färben
+      renderGroups(lastGroups);
+      autoLoadGraph();
+    });
+  }
+
+  // ============================================
   // HILFSFUNKTIONEN
   // ============================================
   function esc(str) {
     return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function makeKey(vorname, nachname) {
+    const v = (vorname || '').toLowerCase().trim().replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue').replace('ß', 'ss');
+    const n = (nachname || '').toLowerCase().trim().replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue').replace('ß', 'ss');
+    return `${v}_${n}`.replace(/[^a-z0-9]/g, '_');
   }
 
 })();
