@@ -559,13 +559,12 @@
               ${isEditing ? 'draggable="true"' : ''} 
               data-member-key="${memberKey}" 
               data-group-index="${i}"
-              style="${isEditing ? 'cursor:move;border:1px dashed var(--gray-400);margin:6px 0;padding:6px;border-radius:var(--radius-sm);background:var(--white);' : ''}">
-            <div class="member-name-row">
-              <span class="member-name" style="font-weight:600;">${esc(m.vorname)} ${esc(m.nachname)}</span>
-              <span class="info-toggle-btn" title="Wünsche anzeigen/ausblenden" style="cursor:pointer;opacity:0.6;">👁️</span>
+              style="padding:8px;margin:6px 0;border-radius:var(--radius-sm);background:var(--white);border:1.5px solid var(--gray-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:6px;${isEditing ? 'cursor:move;border-style:dashed;border-color:var(--gray-400);' : ''}">
+            <div class="member-name-row" style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="member-name" style="font-weight:600;font-size:0.825rem;color:var(--gray-900);">${esc(m.vorname)} ${esc(m.nachname)}</span>
             </div>
-            <div class="member-wishes-detail hidden" style="margin-top:6px;">
-              <div class="wishes-list" style="display:flex;flex-wrap:wrap;gap:4px;">${wishesText}</div>
+            <div class="wishes-list" style="display:flex;flex-wrap:wrap;gap:3px;">
+              ${wishesText}
             </div>
           </li>
         `;
@@ -585,25 +584,6 @@
       `;
     }).join('');
   }
-
-  // Klick-Event Handler für Zeltgruppen-Mitglieder (Detail-Wünsche ein-/ausblenden)
-  groupsGrid && groupsGrid.addEventListener('click', (e) => {
-    // Falls Drag-and-Drop aktiv ist, nicht das Umschalten ausführen
-    if (isEditing && e.target.closest('.member-item')) {
-      // Wenn das Auge explizit geklickt wurde, trotzdem anzeigen
-      if (!e.target.classList.contains('info-toggle-btn')) {
-        return;
-      }
-    }
-    
-    const memberItem = e.target.closest('.member-item');
-    if (!memberItem) return;
-
-    const detail = memberItem.querySelector('.member-wishes-detail');
-    if (detail) {
-      detail.classList.toggle('hidden');
-    }
-  });
 
   // ============================================
   // DRAG & DROP FÜR MANUELLES SCHIEBEN
