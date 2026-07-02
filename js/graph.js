@@ -360,7 +360,9 @@
         .replace(/ö/g, 'oe')
         .replace(/ü/g, 'ue')
         .replace(/ß/g, 'ss')
-        .replace(/[^a-z0-9]/g, '_');
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
     return `${normalize(vorname)}_${normalize(nachname)}`;
   }
 

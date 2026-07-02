@@ -181,8 +181,12 @@ window.calculateGroups = function (entries, zeltGroesse, overrides = { broken: [
     const K = parseInt(numTents) || 10;
     const v = parseInt(maxVar) || 1;
     const avg = n / K;
-    const sMin = Math.max(2, Math.floor(avg) - Math.ceil(v / 2));
-    const sMax = Math.ceil(avg) + Math.floor(v / 2);
+    let sMin = Math.max(2, Math.floor(avg) - Math.ceil(v / 2));
+    let sMax = Math.ceil(avg) + Math.floor(v / 2);
+    if (sMin > sMax) {
+      sMin = Math.max(1, Math.floor(avg));
+      sMax = Math.ceil(avg);
+    }
 
     // 1. Wenn mehr Gruppen als Zelte: kleinste zusammenführen
     while (groups.length > K) {

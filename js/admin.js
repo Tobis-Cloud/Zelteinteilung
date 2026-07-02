@@ -250,7 +250,7 @@
       ].filter(Boolean);
 
       const wishHtml = wishes.length > 0
-        ? wishes.map(w => `<span class="badge badge--red" style="margin:1px;">${w}</span>`).join(' ')
+        ? wishes.map(w => `<span class="badge badge--red" style="margin:1px;">${esc(w)}</span>`).join(' ')
         : `<span class="badge badge--gray">kein Wunsch</span>`;
 
       const ts = e.timestamp?.toDate
