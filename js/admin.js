@@ -260,9 +260,24 @@
 
     groupsGrid.innerHTML = groups.map((g, i) => {
       const color = colors[i % colors.length];
-      const membersHtml = g.members.map(m =>
-        `<li>${esc(m.vorname)} ${esc(m.nachname)}</li>`
-      ).join('');
+      const membersHtml = g.members.map(m => {
+        const wishesText = m.wishes && m.wishes.length > 0
+          ? m.wishes.map(w => `<span class="badge badge--red" style="margin:1px;font-size:0.65rem;padding:1px 6px;">${esc(w)}</span>`).join(' ')
+          : `<span class="badge badge--gray" style="font-size:0.65rem;padding:1px 6px;">keine Wünsche</span>`;
+
+        return `
+          <li class="member-item">
+            <div class="member-name-row">
+              <span class="member-name">${esc(m.vorname)} ${esc(m.nachname)}</span>
+              <span class="info-toggle-btn" title="Wünsche anzeigen/ausblenden">👁️</span>
+            </div>
+            <div class="member-wishes-detail hidden">
+              <div class="wishes-title">Wunschpartner:</div>
+              <div class="wishes-list">${wishesText}</div>
+            </div>
+          </li>
+        `;
+      }).join('');
 
       return `
         <div class="group-card">
@@ -278,6 +293,17 @@
       `;
     }).join('');
   }
+
+  // Klick-Event Handler für Zeltgruppen-Mitglieder (Detail-Wünsche ein-/ausblenden)
+  groupsGrid && groupsGrid.addEventListener('click', (e) => {
+    const memberItem = e.target.closest('.member-item');
+    if (!memberItem) return;
+
+    const detail = memberItem.querySelector('.member-wishes-detail');
+    if (detail) {
+      detail.classList.toggle('hidden');
+    }
+  });
 
   // ============================================
   // HILFSFUNKTIONEN

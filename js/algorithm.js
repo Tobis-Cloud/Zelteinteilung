@@ -21,13 +21,23 @@ window.calculateGroups = function (entries, zeltGroesse) {
 
   const size = Math.max(2, parseInt(zeltGroesse) || 5);
 
+  const formatPartner = (v, n) => {
+    if (!v && !n) return null;
+    return `${v || ''} ${n || ''}`.trim();
+  };
+
   // --- 1. Alle Kinder als Set sammeln ---
-  const allChildren = new Map(); // key → {vorname, nachname}
+  const allChildren = new Map(); // key → {vorname, nachname, wishes}
 
   entries.forEach(e => {
     const key = makeKey(e.vorname, e.nachname);
     if (!allChildren.has(key)) {
-      allChildren.set(key, { vorname: e.vorname, nachname: e.nachname, key });
+      const wishes = [
+        formatPartner(e.wunsch1_vorname, e.wunsch1_nachname),
+        formatPartner(e.wunsch2_vorname, e.wunsch2_nachname),
+        formatPartner(e.wunsch3_vorname, e.wunsch3_nachname),
+      ].filter(Boolean);
+      allChildren.set(key, { vorname: e.vorname, nachname: e.nachname, key, wishes });
     }
     // Wunschpartner auch aufnehmen (falls die keinen eigenen Eintrag haben)
     for (let i = 1; i <= 3; i++) {
@@ -36,7 +46,7 @@ window.calculateGroups = function (entries, zeltGroesse) {
       if (wv && wn) {
         const wKey = makeKey(wv, wn);
         if (!allChildren.has(wKey)) {
-          allChildren.set(wKey, { vorname: wv, nachname: wn, key: wKey });
+          allChildren.set(wKey, { vorname: wv, nachname: wn, key: wKey, wishes: [] });
         }
       }
     }

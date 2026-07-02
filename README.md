@@ -161,10 +161,8 @@ zelteinteilung/
 │   ├── algorithm.js        # Greedy-Algorithmus
 │   └── export.js           # XLSX + PNG Export
 ├── assets/
-│   └── cvjm-logo.svg       # CVJM-Logo
-└── .github/
-    └── workflows/
-        └── deploy.yml      # GitHub Actions Deployment
+│   └── CVJM.png            # CVJM-Logo
+└── .gitignore
 ```
 
 ---
