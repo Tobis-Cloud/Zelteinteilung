@@ -5,15 +5,14 @@
 // Sicherheit wird durch Firestore Security Rules gewährleistet!
 // ============================================
 
-// ⚠️ ERSETZE DIESE WERTE mit deinen eigenen Firebase-Projektdaten!
-// Du findest sie in der Firebase Console unter: Projekteinstellungen → Allgemein → Deine Apps
+// Firebase-Konfiguration für das Projekt "Zelteinteilung"
 const firebaseConfig = {
-  apiKey:            "DEINE_API_KEY",
-  authDomain:        "DEIN_PROJEKT.firebaseapp.com",
-  projectId:         "DEIN_PROJEKT_ID",
-  storageBucket:     "DEIN_PROJEKT.appspot.com",
-  messagingSenderId: "DEINE_SENDER_ID",
-  appId:             "DEINE_APP_ID"
+  apiKey:            "AIzaSyChRqdkq8IKQs5dqkXV2xbSDBk1ukierks",
+  authDomain:        "zelteinteilung.firebaseapp.com",
+  projectId:         "zelteinteilung",
+  storageBucket:     "zelteinteilung.firebasestorage.app",
+  messagingSenderId: "904083835202",
+  appId:             "1:904083835202:web:670cd4efdd8428377be0db"
 };
 
 // Firebase initialisieren
