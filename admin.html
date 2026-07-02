@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adminbereich – JULA 2026 Zelteinteilung</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .admin-header-bar {
+      background: var(--black);
+      color: white;
+      padding: 10px 0;
+    }
+    .admin-header-bar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .admin-badge {
+      background: var(--cvjm-red);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .admin-user-info {
+      font-size: 0.8rem;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #login-section.hidden,
+    #dashboard-section.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body class="page-wrapper" id="admin-page">
+
+  <!-- ============ ADMIN HEADER BAR ============ -->
+  <div class="admin-header-bar">
+    <div class="container container--wide">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="assets/cvjm-logo.svg" alt="CVJM Logo" style="width:30px;height:33px;filter:brightness(0) invert(1);" />
+        <span style="font-weight:700;font-size:0.95rem;">JULA 2026 – Zelteinteilung</span>
+        <span class="admin-badge">Admin</span>
+      </div>
+      <div class="admin-user-info" id="admin-user-bar">
+        <span id="admin-email-display"></span>
+        <button id="logout-btn" class="btn btn--sm btn--secondary" style="padding:5px 12px;font-size:0.75rem;">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main-content" style="padding: 40px 0;">
+    <div class="container container--wide">
+
+      <!-- ======== LOGIN ======== -->
+      <section id="login-section">
+        <div class="admin-login-wrapper">
+          <div class="admin-login-header">
+            <img src="assets/cvjm-logo.svg" alt="CVJM Logo" style="width:60px;height:66px;margin-bottom:16px;" />
+            <h2>Admin-Anmeldung</h2>
+            <p>Nur für die Lagerleitung des JULA 2026.</p>
+          </div>
+
+          <div class="card">
+            <div id="login-alert" class="alert hidden" role="alert" aria-live="polite"></div>
+
+            <form id="login-form" novalidate>
+              <div class="form-group">
+                <label for="login-email">E-Mail <span class="required">*</span></label>
+                <input type="email" id="login-email" placeholder="admin@cvjm-moessingen.de" required autocomplete="email" />
+              </div>
+              <div class="form-group">
+                <label for="login-password">Passwort <span class="required">*</span></label>
+                <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+              </div>
+              <button type="submit" id="login-btn" class="btn btn--primary">
+                <span class="btn-spinner"></span>
+                <span class="btn-text">🔐 &nbsp; Anmelden</span>
+              </button>
+            </form>
+          </div>
+
+          <p style="text-align:center;margin-top:20px;">
+            <a href="index.html" class="footer-link">← Zurück zur Startseite</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ======== DASHBOARD ======== -->
+      <section id="dashboard-section" class="hidden">
+
+        <!-- Statistiken -->
+        <div class="stats-bar">
+          <div class="stat-card">
+            <div class="stat-card__value" id="stat-total">–</div>
+            <div class="stat-card__label">Einträge gesamt</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value" id="stat-with-wishes">–</div>
+            <div class="stat-card__label">Mit Wunsch</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value" id="stat-without-wishes">–</div>
+            <div class="stat-card__label">Ohne Wunsch</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="admin-tabs" role="tablist">
+          <button class="tab-btn active" data-tab="entries" role="tab" aria-selected="true" id="tab-btn-entries">
+            📋 Einträge
+          </button>
+          <button class="tab-btn" data-tab="graph" role="tab" aria-selected="false" id="tab-btn-graph">
+            🌐 Wunschgraph
+          </button>
+          <button class="tab-btn" data-tab="groups" role="tab" aria-selected="false" id="tab-btn-groups">
+            ⛺ Zeltgruppen
+          </button>
+        </div>
+
+        <!-- ---- Tab: Einträge ---- -->
+        <div id="tab-entries" class="tab-panel active" role="tabpanel">
+          <div class="toolbar">
+            <div class="toolbar__title">Alle eingegangenen Wünsche</div>
+            <div class="toolbar__actions">
+              <button id="export-xlsx-btn" class="btn btn--secondary btn--sm">
+                📥 Als Excel exportieren
+              </button>
+            </div>
+          </div>
+
+          <div class="data-table-wrapper">
+            <table class="data-table" aria-label="Wunschpartner-Einträge">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Kind</th>
+                  <th>E-Mail</th>
+                  <th>Wunschpartner</th>
+                  <th>Eingegangen</th>
+                </tr>
+              </thead>
+              <tbody id="entries-tbody">
+                <tr>
+                  <td colspan="5" class="table-empty">Daten werden geladen…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ---- Tab: Graph ---- -->
+        <div id="tab-graph" class="tab-panel" role="tabpanel">
+          <div class="toolbar">
+            <div class="toolbar__title">Wunschverbindungs-Graph</div>
+            <div class="toolbar__actions">
+              <button id="load-graph-btn" class="btn btn--outline btn--sm">
+                🔄 Graph laden / aktualisieren
+              </button>
+              <button id="export-png-btn" class="btn btn--secondary btn--sm">
+                🖼 Als PNG exportieren
+              </button>
+            </div>
+          </div>
+
+          <div class="alert alert--info" style="margin-bottom:16px;" role="note">
+            <span class="alert__icon">ℹ️</span>
+            <div>
+              <strong>Rote, dicke Linien</strong> = gegenseitige Wünsche (beide haben sich gewünscht).
+              <strong>Graue Linien</strong> = einseitiger Wunsch. Knoten sind <strong>verschiebbar</strong>.
+              Zoom mit Mausrad oder Touchpad. Wenn Zeltgruppen berechnet wurden, werden die Knotenfarben entsprechend angepasst.
+            </div>
+          </div>
+
+          <div id="graph-container" class="graph-container">
+            <div class="graph-empty">
+              <span class="icon">🌐</span>
+              <p>Klicke auf „Graph laden", um die Wunschverbindungen anzuzeigen.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- Tab: Gruppen ---- -->
+        <div id="tab-groups" class="tab-panel" role="tabpanel">
+          <div class="toolbar">
+            <div class="toolbar__title">Zeltgruppen-Vorschlag</div>
+            <div class="toolbar__actions">
+              <button id="export-groups-btn" class="btn btn--secondary btn--sm" disabled>
+                📥 Gruppen als Excel exportieren
+              </button>
+            </div>
+          </div>
+
+          <div class="alert alert--info" style="margin-bottom:20px;" role="note">
+            <span class="alert__icon">ℹ️</span>
+            <div>
+              Der Algorithmus gruppiert Kinder so, dass möglichst viele Wünsche erfüllt werden.
+              Gruppen mit starken gegenseitigen Verbindungen bleiben zusammen.
+              Die Gruppen sind <strong>Vorschläge</strong> – die Lagerleitung kann diese manuell anpassen.
+            </div>
+          </div>
+
+          <div class="group-controls">
+            <div class="form-group">
+              <label for="zelt-groesse">Maximale Kinder pro Zelt</label>
+              <input
+                type="number"
+                id="zelt-groesse"
+                min="2"
+                max="20"
+                value="5"
+                style="width:120px;"
+              />
+            </div>
+            <button id="calc-groups-btn" class="btn btn--primary" style="width:auto;padding:12px 24px;">
+              ⚡ Gruppen berechnen
+            </button>
+          </div>
+
+          <div id="groups-grid" class="group-grid">
+            <p style="color:var(--gray-500);font-size:0.9rem;">
+              Gib die Zeltgröße ein und klicke auf „Gruppen berechnen".
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span class="footer-copy">© 2026 CVJM Mössingen – Nur für die Lagerleitung</span>
+        </div>
+        <div class="footer-right">
+          <a href="index.html" class="footer-link">← Zur Startseite</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ SCRIPTS ============ -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- D3.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+  <!-- SheetJS für XLSX-Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- App-Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/algorithm.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/admin.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Dateien, die NICHT auf GitHub hochgeladen werden sollen
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+.env
+.env.local

@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // Wunschpartner-Einträge
+    // ============================================
+    match /wuensche/{kindId} {
+
+      // ✅ ERSTELLEN: Öffentlich erlaubt, ABER nur wenn der Eintrag noch nicht existiert.
+      // Das verhindert serverseitig Doppeleinträge, auch wenn jemand das Frontend umgeht.
+      allow create: if
+        // Dokument darf noch nicht existieren
+        !exists(/databases/$(database)/documents/wuensche/$(kindId))
+        // Pflichtfelder müssen vorhanden und Strings sein
+        && request.resource.data.vorname is string
+        && request.resource.data.vorname.size() > 0
+        && request.resource.data.nachname is string
+        && request.resource.data.nachname.size() > 0
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        // Keine übermäßig langen Eingaben (Schutz vor Missbrauch)
+        && request.resource.data.vorname.size() <= 50
+        && request.resource.data.nachname.size() <= 50
+        && request.resource.data.email.size() <= 100;
+
+      // 🔒 LESEN: Nur für eingeloggte Admins (Firebase Auth)
+      allow read: if request.auth != null;
+
+      // 🔒 ÄNDERN / LÖSCHEN: Nur für eingeloggte Admins
+      allow update, delete: if request.auth != null;
+    }
+
+    // ============================================
+    // Alle anderen Collections: kein Zugriff
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wunsch eingegangen – JULA 2026 | CVJM Mössingen</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <img src="assets/cvjm-logo.svg" alt="CVJM Mössingen Logo" class="header-logo" />
+        <div class="header-text">
+          <h1>JULA 2026</h1>
+          <p class="subtitle">Zelteinteilung Jungs</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Erfolgs-Hero -->
+      <div class="success-hero">
+        <div class="success-icon">✓</div>
+        <h2>Wunsch wurde eingegangen!</h2>
+        <p>Vielen Dank! Der Wunsch wurde erfolgreich gespeichert.<br>Die Lagerleitung wird sich bei der Zelteinteilung darum kümmern.</p>
+      </div>
+
+      <!-- Zusammenfassungs-Card -->
+      <div class="card" id="summary-card">
+        <div class="card__title">
+          <span class="icon">📋</span>
+          Deine Angaben
+        </div>
+        <table class="summary-table" id="summary-table">
+          <tbody>
+            <tr>
+              <td>Kind</td>
+              <td id="sum-kind">–</td>
+            </tr>
+            <tr>
+              <td>E-Mail</td>
+              <td id="sum-email">–</td>
+            </tr>
+            <tr>
+              <td>Wunschzeltpartner 1</td>
+              <td id="sum-w1">kein Wunsch</td>
+            </tr>
+            <tr>
+              <td>Wunschzeltpartner 2</td>
+              <td id="sum-w2">kein Wunsch</td>
+            </tr>
+            <tr>
+              <td>Wunschzeltpartner 3</td>
+              <td id="sum-w3">kein Wunsch</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Info-Box -->
+      <div class="alert alert--info" style="margin-top:24px;" role="note">
+        <span class="alert__icon">ℹ️</span>
+        <div>
+          <strong>Was passiert jetzt?</strong><br>
+          Die Lagerleitung sammelt alle Wünsche und erstellt danach die Zelteinteilung.
+          Ihr werdet rechtzeitig vor dem Lager informiert, in welchem Zelt euer Kind schläft.
+        </div>
+      </div>
+
+      <!-- Zurück-Button -->
+      <div style="text-align:center; margin-top:32px;">
+        <a href="index.html" class="btn btn--secondary" style="display:inline-flex;">
+          ← Zurück zur Startseite
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span class="footer-copy">© 2026 CVJM Mössingen</span>
+          <a href="impressum.html" class="footer-link">Impressum</a>
+        </div>
+        <div class="footer-right">
+          <a href="admin.html" class="btn--admin" title="Adminbereich">⚙ Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script>
+    // Zusammenfassung aus URL-Parametern laden
+    (function () {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const raw    = params.get('data');
+        if (!raw) return;
+
+        const data = JSON.parse(decodeURIComponent(raw));
+
+        const sumKind  = document.getElementById('sum-kind');
+        const sumEmail = document.getElementById('sum-email');
+        const sumW     = [
+          document.getElementById('sum-w1'),
+          document.getElementById('sum-w2'),
+          document.getElementById('sum-w3'),
+        ];
+
+        if (sumKind)  sumKind.textContent  = `${data.vorname || ''} ${data.nachname || ''}`.trim();
+        if (sumEmail) sumEmail.textContent = data.email || '–';
+
+        (data.partners || []).forEach((p, i) => {
+          if (sumW[i] && p && (p.vorname || p.nachname)) {
+            sumW[i].textContent = `${p.vorname || ''} ${p.nachname || ''}`.trim();
+          }
+        });
+
+      } catch (e) {
+        // Fehler beim Parsen – kein Problem, Standardtext wird angezeigt
+        console.warn('Zusammenfassung konnte nicht geladen werden.', e);
+      }
+    })();
+  </script>
+
+</body>
+</html>

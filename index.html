@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JULA 2026 – Zelteinteilung Jungs | CVJM Mössingen</title>
+  <meta name="description" content="Hier können Eltern Wunschzeltpartner für die Jungs beim Jungscharlager 2026 des CVJM Mössingen eintragen." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <img src="assets/cvjm-logo.svg" alt="CVJM Mössingen Logo" class="header-logo" />
+        <div class="header-text">
+          <h1>JULA 2026</h1>
+          <p class="subtitle">Zelteinteilung Jungs</p>
+        </div>
+        <div class="header-accent">Jungscharlager</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Einleitungstext -->
+      <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--cvjm-red);">
+        <div class="card__title">
+          <span class="icon">⛺</span>
+          Wunschzeltpartner eintragen
+        </div>
+        <p class="card__desc" style="margin-bottom:0;">
+          Liebe Eltern, hier könnt ihr für euren Sohn bis zu <strong>3 Wunschzeltpartner</strong> angeben.
+          Wir versuchen, die Wünsche bei der Zelteinteilung zu berücksichtigen – eine Garantie können wir leider nicht geben.
+          <br><br>
+          <strong>Bitte tragt nur den Vornamen des Jungen ein</strong> – nur Jungs können Wünsche angeben.
+          Jeder Junge kann nur einmal eingetragen werden.
+        </p>
+      </div>
+
+      <!-- Alertbox -->
+      <div id="alert-box" class="alert hidden" role="alert" aria-live="polite"></div>
+
+      <!-- Formular-Card -->
+      <div class="card">
+
+        <form id="wunsch-form" novalidate autocomplete="off">
+
+          <!-- E-Mail -->
+          <div class="form-group">
+            <label for="email">Eure E-Mail-Adresse <span class="required">*</span></label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="eltern@beispiel.de"
+              required
+              autocomplete="email"
+              inputmode="email"
+            />
+          </div>
+
+          <!-- Divider -->
+          <div class="form-divider">
+            <span>Euer Kind</span>
+          </div>
+
+          <!-- Kind-Name -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vorname">Vorname des Jungen <span class="required">*</span></label>
+              <input
+                type="text"
+                id="vorname"
+                name="vorname"
+                placeholder="Max"
+                required
+                autocomplete="off"
+              />
+            </div>
+            <div class="form-group">
+              <label for="nachname">Nachname <span class="required">*</span></label>
+              <input
+                type="text"
+                id="nachname"
+                name="nachname"
+                placeholder="Mustermann"
+                required
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="form-divider">
+            <span>Wunschzeltpartner (optional)</span>
+          </div>
+
+          <!-- Wunschpartner 1 -->
+          <div class="partner-block">
+            <div class="partner-block__label">
+              <span class="partner-badge">1</span>
+              Wunschzeltpartner 1
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="wunsch1-vorname">Vorname</label>
+                <input
+                  type="text"
+                  id="wunsch1-vorname"
+                  name="wunsch1-vorname"
+                  placeholder="z. B. Luca"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="wunsch1-nachname">Nachname</label>
+                <input
+                  type="text"
+                  id="wunsch1-nachname"
+                  name="wunsch1-nachname"
+                  placeholder="z. B. Meier"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Wunschpartner 2 -->
+          <div class="partner-block optional">
+            <div class="partner-block__label">
+              <span class="partner-badge">2</span>
+              Wunschzeltpartner 2 <span style="font-weight:400;color:var(--gray-500)">(optional)</span>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="wunsch2-vorname">Vorname</label>
+                <input
+                  type="text"
+                  id="wunsch2-vorname"
+                  name="wunsch2-vorname"
+                  placeholder="z. B. Jonas"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="wunsch2-nachname">Nachname</label>
+                <input
+                  type="text"
+                  id="wunsch2-nachname"
+                  name="wunsch2-nachname"
+                  placeholder="z. B. Schmidt"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Wunschpartner 3 -->
+          <div class="partner-block optional">
+            <div class="partner-block__label">
+              <span class="partner-badge">3</span>
+              Wunschzeltpartner 3 <span style="font-weight:400;color:var(--gray-500)">(optional)</span>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="wunsch3-vorname">Vorname</label>
+                <input
+                  type="text"
+                  id="wunsch3-vorname"
+                  name="wunsch3-vorname"
+                  placeholder="z. B. Tim"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="wunsch3-nachname">Nachname</label>
+                <input
+                  type="text"
+                  id="wunsch3-nachname"
+                  name="wunsch3-nachname"
+                  placeholder="z. B. Wagner"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Datenschutzhinweis -->
+          <div class="privacy-notice" role="note">
+            <span style="font-size:1.1rem; flex-shrink:0;">🔒</span>
+            <p>
+              <strong>Datenschutz:</strong> Die eingetragenen Daten (Name des Kindes, Wunschpartner und E-Mail)
+              werden ausschließlich für die Zelteinteilung des Jungscharlagers 2026 verwendet und
+              nur der Lagerleitung zugänglich gemacht. Die Daten werden sicher in einer verschlüsselten Datenbank
+              gespeichert. Nach dem Lager werden alle Daten gelöscht.
+              <br>Weitere Infos: <a href="impressum.html">Impressum</a>
+            </p>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="submit-btn" class="btn btn--primary">
+            <span class="btn-spinner"></span>
+            <span class="btn-text">✓ &nbsp; Wunsch absenden</span>
+          </button>
+
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span class="footer-copy">© 2026 CVJM Mössingen</span>
+          <a href="impressum.html" class="footer-link">Impressum</a>
+        </div>
+        <div class="footer-right">
+          <a href="admin.html" class="btn--admin" title="Adminbereich">⚙ Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ SCRIPTS ============ -->
+  <!-- Firebase SDK (compat version für einfache Nutzung) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- App-Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/form.js"></script>
+
+</body>
+</html>
