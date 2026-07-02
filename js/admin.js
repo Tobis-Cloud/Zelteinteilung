@@ -375,25 +375,6 @@
     autoLoadGraph();
   });
 
-  // i-Info-Tooltip ein- und ausblenden
-  infoTooltipBtn && infoTooltipBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    infoTooltipContent.classList.toggle('hidden');
-  });
-
-  // Schließe den Tooltip bei Klick auf den Tooltip selbst oder außerhalb
-  infoTooltipContent && infoTooltipContent.addEventListener('click', () => {
-    infoTooltipContent.classList.add('hidden');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (infoTooltipContent && !infoTooltipContent.classList.contains('hidden')) {
-      if (!infoTooltipContent.contains(e.target) && e.target !== infoTooltipBtn) {
-        infoTooltipContent.classList.add('hidden');
-      }
-    }
-  });
-
   // Dichte-Schalter binden
   function setDensity(density) {
     currentDensity = density;

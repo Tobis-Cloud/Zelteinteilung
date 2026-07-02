@@ -161,25 +161,8 @@
 
         <!-- ---- Tab: Graph ---- -->
         <div id="tab-graph" class="tab-panel" role="tabpanel">
-          <div class="toolbar" style="position:relative; z-index: 101;">
-            <div class="toolbar__title" style="display:flex;align-items:center;gap:8px;position:relative;">
-              Wunschverbindungs-Graph
-              <button id="info-tooltip-btn" class="btn--admin" style="padding:2px 6px;font-size:0.75rem;border-radius:50%;cursor:pointer;" title="Hilfe anzeigen">i</button>
-              
-              <!-- Tooltip Inhalt -->
-              <div id="info-tooltip-content" class="hidden" style="position:absolute;top:32px;left:0;z-index:200;background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-lg);width:320px;font-size:0.8rem;font-weight:normal;line-height:1.4;color:var(--gray-900);">
-                <strong style="display:block;margin-bottom:6px;color:var(--black);">💡 Graph-Bedienung:</strong>
-                • <strong>Verbindungen lösen:</strong> Klicke auf eine rote/graue Verbindungslinie (wird gestrichelt, schiebt Jungs weiter auseinander).<br>
-                • <strong>Verbindung hinzufügen:</strong> Wähle oben zwei Jungs und klicke auf „Hinzufügen“ (wird grün, zieht Jungs zusammen).<br>
-                • <strong>Verbindung entfernen:</strong> Klicke auf eine grüne Linie.<br>
-                • <strong>Verschieben:</strong> Ziehe Jungs per Drag & Drop.<br><br>
-                <strong style="display:block;margin-bottom:4px;color:var(--black);">Legende:</strong>
-                🔴 Rot = gegenseitiger Wunsch<br>
-                ⚫ Grau = einseitiger Wunsch<br>
-                🟢 Grün = manuelle Verbindung (ohne Pfeil)<br>
-                ❌ Gestrichelt = gelöste Verbindung (weiterer Abstand)
-              </div>
-            </div>
+          <div class="toolbar">
+            <div class="toolbar__title">Wunschverbindungs-Graph</div>
             <div class="toolbar__actions" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
               <!-- Manuelle Verbindung -->
               <div class="connection-tool" style="display:inline-flex;align-items:center;gap:6px;background:var(--gray-50);border:1.5px solid var(--gray-300);padding:4px 8px;border-radius:var(--radius-sm);">
@@ -217,6 +200,16 @@
               <span class="icon">🌐</span>
               <p>Klicke auf „Graph laden", um die Wunschverbindungen anzuzeigen.</p>
             </div>
+          </div>
+
+          <!-- Kleine Erklärungsleiste unten -->
+          <div class="graph-legend-bar" style="margin-top:12px;padding:10px 14px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:0.75rem;display:flex;flex-wrap:wrap;gap:14px;justify-content:center;color:var(--gray-700);line-height:1.3;">
+            <span>🔴 <strong>Rot:</strong> Gegenseitiger Wunsch</span>
+            <span>⚫ <strong>Grau:</strong> Einseitiger Wunsch</span>
+            <span>🟢 <strong>Grün:</strong> Manuelle Verbindung</span>
+            <span>❌ <strong>Gestrichelt:</strong> Gelöste Verbindung (weiterer Abstand)</span>
+            <span style="color:var(--gray-300);">|</span>
+            <span>💡 <em>Tipp: Klicke auf Kanten, um sie zu lösen oder grüne Linien zu löschen. Drag & Drop zum Verschieben.</em></span>
           </div>
         </div>
 
