@@ -196,3 +196,5 @@ git push
 
 *Lagerleitung JULA 2026: Hannah Hoch, Felix Jauch, Lea Hägele, Tobias Ayen*
 *Soli Deo Gloria ✝*
+
+ 
