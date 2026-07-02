@@ -604,11 +604,15 @@
         `;
       }).join('');
 
+      const titleHtml = isEditing
+        ? `<input type="text" class="group-name-input" data-group-index="${i}" value="${esc(g.name)}" style="font-size:0.8rem;font-weight:700;border:1px solid var(--gray-300);border-radius:4px;padding:2px 6px;width:110px;outline:none;background:var(--gray-50);color:var(--gray-900);" />`
+        : esc(g.name);
+
       return `
         <div class="group-card" data-group-index="${i}">
           <div class="group-card__title">
             <div class="group-card__dot" style="background:${color};"></div>
-            ${esc(g.name)}
+            ${titleHtml}
             <span class="badge badge--gray" style="margin-left:auto;">${g.size} Jungs</span>
           </div>
           <ul class="group-card__members">
@@ -727,6 +731,17 @@
         document.querySelectorAll('.member-item.highlight-orange').forEach(item => {
           item.classList.remove('highlight-orange');
         });
+      }
+    });
+
+    // Zeltnamen-Änderungen erfassen und in Firestore speichern
+    groupsGrid.addEventListener('change', (e) => {
+      if (e.target.classList.contains('group-name-input')) {
+        const idx = parseInt(e.target.dataset.groupIndex);
+        if (!isNaN(idx) && lastGroups[idx]) {
+          lastGroups[idx].name = e.target.value;
+          saveAdminState(); // Cloud-Synchronisierung!
+        }
       }
     });
   }
