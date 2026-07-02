@@ -149,22 +149,7 @@
 
     try {
       const kindId = normalizeKey(data.vorname, data.nachname);
-
-      // Duplikat-Check: Prüfe ob Kind bereits eingetragen ist
       const docRef = db.collection('wuensche').doc(kindId);
-      const docSnap = await docRef.get();
-
-      if (docSnap.exists) {
-        showAlert(
-          'warning',
-          `<strong>Eintrag bereits vorhanden!</strong><br>
-          Für <strong>${data.vorname} ${data.nachname}</strong> wurde bereits ein Wunsch eingetragen.
-          Aus Datenschutzgründen kann dieser nicht geändert werden.
-          Bei Fragen wende dich an die Lagerleitung.`
-        );
-        setLoading(false);
-        return;
-      }
 
       // Dokument vorbereiten
       const docData = {
@@ -182,6 +167,8 @@
       };
 
       // In Firestore speichern
+      // Da unbefugte Updates per Security Rules blockiert sind, wirft set()
+      // bei einem bereits existierenden Dokument automatisch einen 'permission-denied' Fehler.
       await docRef.set(docData);
 
       // Auf Erfolgsseite weiterleiten (mit kodierten Daten für Zusammenfassung)
@@ -197,8 +184,11 @@
       console.error('Fehler beim Speichern:', err);
       if (err.code === 'permission-denied') {
         showAlert(
-          'error',
-          'Dieser Eintrag existiert bereits. Falls du einen Fehler vermutest, kontaktiere bitte die Lagerleitung.'
+          'warning',
+          `<strong>Eintrag bereits vorhanden!</strong><br>
+          Für dieses Kind wurde bereits ein Wunsch eingetragen.
+          Aus Datenschutzgründen können bestehende Einträge nicht überschrieben oder eingesehen werden.
+          Bei Fragen oder Änderungswünschen wende dich bitte direkt an die Lagerleitung.`
         );
       } else {
         showAlert(
