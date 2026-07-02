@@ -20,8 +20,9 @@
    * @param {Array}  groups      - Berechnete Zeltgruppen (optional, für Farben)
    * @param {boolean} clusterActive - Ob Gruppen zentriert gebündelt werden sollen
    * @param {string} density - Dichte des Graphen ('normal', 'tight', 'super')
+   * @param {Object} overrides - Manuelle Verbindungs-Overrides { broken: [], added: [] }
    */
-  window.renderGraph = function (containerId, entries, groups = [], clusterActive = false, density = 'normal') {
+  window.renderGraph = function (containerId, entries, groups = [], clusterActive = false, density = 'normal', overrides = { broken: [], added: [] }) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -65,7 +66,7 @@
     }
 
     // Links-Set für gegenseitige Wünsche
-    const linkSet = new Map(); // "keyA||keyB" → {source, target, mutual, count}
+    const linkSet = new Map(); // "keyA||keyB" → {source, target, mutual, count, broken, manual}
 
     entries.forEach(e => {
       const fromNode = getOrCreateNode(e.vorname, e.nachname);
@@ -77,6 +78,7 @@
           const fromKey = fromNode.id;
           const toKey   = makeKey(wv, wn);
           const edgeKey = [fromKey, toKey].sort().join('||');
+          const isBroken = (overrides.broken || []).includes(edgeKey);
 
           if (!linkSet.has(edgeKey)) {
             linkSet.set(edgeKey, {
@@ -84,6 +86,8 @@
               target:  toKey,
               count:   0,
               mutual:  false,
+              broken:  isBroken,
+              manual:  false,
               fromKey,
               toKey,
             });
@@ -93,6 +97,23 @@
             linkSet.get(edgeKey).mutual = true;
           }
         }
+      }
+    });
+
+    // Manuelle (grüne) Verbindungen hinzufügen
+    (overrides.added || []).forEach(edgeKey => {
+      const [fromKey, toKey] = edgeKey.split('||');
+      if (nodeMap.has(fromKey) && nodeMap.has(toKey)) {
+        linkSet.set(edgeKey, {
+          source:  fromKey,
+          target:  toKey,
+          count:   0,
+          mutual:  false,
+          broken:  false,
+          manual:  true,
+          fromKey,
+          toKey,
+        });
       }
     });
 
@@ -154,8 +175,13 @@
     const simulation = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(linksArr)
         .id(d => d.id)
-        .distance(linkDistance)
-        .strength(0.6)
+        .distance(d => {
+          let dist = linkDistance;
+          if (d.broken) dist *= 1.8; // Gelöste Verbindungen weiter auseinander
+          if (d.manual) dist *= 0.8; // Manuelle Verbindungen etwas enger zusammen
+          return dist;
+        })
+        .strength(d => d.broken ? 0.15 : 0.6)
       )
       .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
@@ -164,7 +190,16 @@
     // Falls Gruppen-Bündelung aktiv ist, berechne Anziehungskräfte zu den Gruppenzentren
     if (clusterActive && groups && groups.length > 0) {
       const numGroups = groups.length;
-      const radius = Math.min(width, height) * 0.3;
+      
+      // Radius verkleinern je nach gewählter Dichte, um die Gruppen näher zusammenzubringen
+      let radiusFactor = 0.3;
+      if (density === 'tight') {
+        radiusFactor = 0.18;
+      } else if (density === 'super') {
+        radiusFactor = 0.08;
+      }
+      
+      const radius = Math.min(width, height) * radiusFactor;
       const groupCenters = groups.map((g, i) => {
         const angle = (i / numGroups) * 2 * Math.PI;
         return {
@@ -195,11 +230,34 @@
       .data(linksArr)
       .enter()
       .append('line')
-      .attr('class',          d => `link ${d.mutual ? 'mutual' : ''}`)
-      .attr('stroke',         d => d.mutual ? '#E8001E' : '#cccccc')
-      .attr('stroke-width',   d => d.mutual ? 3 : 1.5)
-      .attr('stroke-opacity', d => d.mutual ? 0.85 : 0.5)
-      .attr('marker-end',     d => `url(#${d.mutual ? 'arrow-mutual' : 'arrow-normal'})`);
+      .attr('class',          d => `link ${d.mutual ? 'mutual' : ''} ${d.manual ? 'manual' : ''} ${d.broken ? 'broken' : ''}`)
+      .attr('stroke',         d => {
+        if (d.manual) return '#22c55e'; // Grün für manuelle Verbindungen
+        if (d.broken) return '#9ca3af'; // Grau/Dashed für gelöste
+        return d.mutual ? '#E8001E' : '#cccccc';
+      })
+      .attr('stroke-width',   d => {
+        if (d.manual) return 3.5;
+        if (d.broken) return 1.5;
+        return d.mutual ? 3 : 1.5;
+      })
+      .attr('stroke-opacity', d => {
+        if (d.manual) return 0.9;
+        if (d.broken) return 0.4;
+        return d.mutual ? 0.85 : 0.5;
+      })
+      .attr('marker-end',     d => {
+        if (d.manual) return 'none'; // Keine Pfeile bei manuellen grünen Linien
+        return `url(#${d.mutual ? 'arrow-mutual' : 'arrow-normal'})`;
+      });
+
+    // Klick-Handler auf die Kanten (Verbindungslinien) binden
+    link.on('click', (event, d) => {
+      const edgeKey = [d.source.id, d.target.id].sort().join('||');
+      if (window.handleLinkClick) {
+        window.handleLinkClick(edgeKey, d.manual);
+      }
+    });
 
     // --- Nodes zeichnen ---
     const node = g.append('g')

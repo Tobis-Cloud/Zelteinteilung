@@ -1119,3 +1119,41 @@ input::placeholder {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ============================================
+   GRAPH OVERLAYS & OVERRIDES
+   ============================================ */
+.graph-container:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #fafafa !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.graph-container:fullscreen svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Interaktive Klick-Klassen für Graph-Links */
+.link {
+  cursor: pointer;
+}
+
+.link:hover {
+  stroke-width: 4.5px !important;
+  stroke-opacity: 1 !important;
+}
+
+.link.broken {
+  stroke-dasharray: 6, 6;
+}
+
+.link.manual {
+  stroke-width: 3.5px;
+}

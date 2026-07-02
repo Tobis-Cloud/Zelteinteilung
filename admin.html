@@ -161,33 +161,54 @@
 
         <!-- ---- Tab: Graph ---- -->
         <div id="tab-graph" class="tab-panel" role="tabpanel">
-          <div class="toolbar">
-            <div class="toolbar__title">Wunschverbindungs-Graph</div>
+          <div class="toolbar" style="position:relative; z-index: 101;">
+            <div class="toolbar__title" style="display:flex;align-items:center;gap:8px;position:relative;">
+              Wunschverbindungs-Graph
+              <button id="info-tooltip-btn" class="btn--admin" style="padding:2px 6px;font-size:0.75rem;border-radius:50%;cursor:pointer;" title="Hilfe anzeigen">i</button>
+              
+              <!-- Tooltip Inhalt -->
+              <div id="info-tooltip-content" class="hidden" style="position:absolute;top:32px;left:0;z-index:200;background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-lg);width:320px;font-size:0.8rem;font-weight:normal;line-height:1.4;color:var(--gray-900);">
+                <strong style="display:block;margin-bottom:6px;color:var(--black);">💡 Graph-Bedienung:</strong>
+                • <strong>Verbindungen lösen:</strong> Klicke auf eine rote/graue Verbindungslinie (wird gestrichelt, schiebt Jungs weiter auseinander).<br>
+                • <strong>Verbindung hinzufügen:</strong> Wähle oben zwei Jungs und klicke auf „Hinzufügen“ (wird grün, zieht Jungs zusammen).<br>
+                • <strong>Verbindung entfernen:</strong> Klicke auf eine grüne Linie.<br>
+                • <strong>Verschieben:</strong> Ziehe Jungs per Drag & Drop.<br><br>
+                <strong style="display:block;margin-bottom:4px;color:var(--black);">Legende:</strong>
+                🔴 Rot = gegenseitiger Wunsch<br>
+                ⚫ Grau = einseitiger Wunsch<br>
+                🟢 Grün = manuelle Verbindung (ohne Pfeil)<br>
+                ❌ Gestrichelt = gelöste Verbindung (weiterer Abstand)
+              </div>
+            </div>
             <div class="toolbar__actions" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <!-- Manuelle Verbindung -->
+              <div class="connection-tool" style="display:inline-flex;align-items:center;gap:6px;background:var(--gray-50);border:1.5px solid var(--gray-300);padding:4px 8px;border-radius:var(--radius-sm);">
+                <span style="font-size:0.7rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;">Verbindung:</span>
+                <select id="conn-select-1" style="padding:4px;font-size:0.8rem;border:1px solid var(--gray-300);border-radius:4px;max-width:130px;outline:none;"></select>
+                <span style="font-size:0.8rem;color:var(--gray-500);">➔</span>
+                <select id="conn-select-2" style="padding:4px;font-size:0.8rem;border:1px solid var(--gray-300);border-radius:4px;max-width:130px;outline:none;"></select>
+                <button id="add-conn-btn" class="btn btn--sm btn--primary" style="padding:4px 10px;font-size:0.75rem;width:auto;height:28px;">Hinzufügen</button>
+              </div>
+
               <!-- Dichte-Selector -->
               <div class="density-selector" style="display:inline-flex;background:var(--gray-100);padding:3px;border-radius:var(--radius-sm);border:1.5px solid var(--gray-300);gap:2px;">
                 <button id="density-normal-btn" class="btn btn--sm active" style="padding:6px 12px;background:var(--white);box-shadow:var(--shadow-sm);border:none;">↔️ Normal</button>
                 <button id="density-tight-btn" class="btn btn--sm" style="padding:6px 12px;background:transparent;border:none;">🤏 Eng</button>
                 <button id="density-super-btn" class="btn btn--sm" style="padding:6px 12px;background:transparent;border:none;">💥 Sehr eng</button>
               </div>
+
               <button id="toggle-cluster-btn" class="btn btn--outline btn--sm" style="display: none;">
                 🔮 Gruppen bündeln
               </button>
+              <button id="fullscreen-btn" class="btn btn--outline btn--sm">
+                🖥️ Vollbild
+              </button>
               <button id="load-graph-btn" class="btn btn--outline btn--sm">
-                🔄 Graph laden / aktualisieren
+                🔄 Aktualisieren
               </button>
               <button id="export-png-btn" class="btn btn--secondary btn--sm">
-                🖼 Als PNG exportieren
+                🖼 PNG Export
               </button>
-            </div>
-          </div>
-
-          <div class="alert alert--info" style="margin-bottom:16px;" role="note">
-            <span class="alert__icon">ℹ️</span>
-            <div>
-              <strong>Rote, dicke Linien</strong> = gegenseitige Wünsche (beide haben sich gewünscht).
-              <strong>Graue Linien</strong> = einseitiger Wunsch. Knoten sind <strong>verschiebbar</strong>.
-              Zoom mit Mausrad oder Touchpad. Wenn Zeltgruppen berechnet wurden, werden die Knotenfarben entsprechend angepasst.
             </div>
           </div>
 

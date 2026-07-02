@@ -12,11 +12,10 @@
  * 3. Teile Komponenten entsprechend der Zeltgröße auf
  * 4. Fülle kleine Gruppen mit Einzelkindern auf
  *
- * @param {Array} entries - Alle Firestore-Einträge
- * @param {number} zeltGroesse - Maximale Anzahl Kinder pro Zelt
+ * @param {Object} overrides - Manuelle Verbindungs-Overrides { broken: [], added: [] }
  * @returns {Array} - Array von Zeltgruppen [{name, members: [{vorname, nachname}]}]
  */
-window.calculateGroups = function (entries, zeltGroesse) {
+window.calculateGroups = function (entries, zeltGroesse, overrides = { broken: [], added: [] }) {
   if (!entries || entries.length === 0) return [];
 
   const size = Math.max(2, parseInt(zeltGroesse) || 5);
@@ -85,12 +84,28 @@ window.calculateGroups = function (entries, zeltGroesse) {
       const wn = e[`wunsch${i}_nachname`];
       if (wv && wn) {
         const toKey = makeKey(wv, wn);
+        const edgeKey = [fromKey, toKey].sort().join('||');
+        
+        // Gelöste Verbindungen im Algorithmus überspringen (nicht gruppieren)
+        if ((overrides.broken || []).includes(edgeKey)) {
+          continue;
+        }
+
         union(fromKey, toKey);
 
         // Kantengewicht erhöhen
-        const edgeKey = [fromKey, toKey].sort().join('||');
         edgeWeights.set(edgeKey, (edgeWeights.get(edgeKey) || 0) + 1);
       }
+    }
+  });
+
+  // Manuelle (grüne) Verbindungen im Algorithmus erzwingen
+  (overrides.added || []).forEach(edgeKey => {
+    const [fromKey, toKey] = edgeKey.split('||');
+    if (parent[fromKey] && parent[toKey]) {
+      union(fromKey, toKey);
+      // Sehr hohes Kantengewicht geben, damit sie beim Aufteilen zusammenbleiben
+      edgeWeights.set(edgeKey, 10);
     }
   });
 

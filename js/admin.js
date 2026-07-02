@@ -38,15 +38,25 @@
   const exportPngBtn  = document.getElementById('export-png-btn');
   const graphContainer = document.getElementById('graph-container');
 
-  // Gruppen
-  const zeltGroesseInput   = document.getElementById('zelt-groesse');
-  const calcGroupsBtn       = document.getElementById('calc-groups-btn');
-  const groupsGrid          = document.getElementById('groups-grid');
-  const exportGroupsBtn     = document.getElementById('export-groups-btn');
+  // Graph Overrides & Tools
+  const connSelect1 = document.getElementById('conn-select-1');
+  const connSelect2 = document.getElementById('conn-select-2');
+  const addConnBtn = document.getElementById('add-conn-btn');
+  const fullscreenBtn = document.getElementById('fullscreen-btn');
+  const infoTooltipBtn = document.getElementById('info-tooltip-btn');
+  const infoTooltipContent = document.getElementById('info-tooltip-content');
 
   // --- State ---
   let allEntries  = [];
   let lastGroups  = [];
+  let manualOverrides = { broken: [], added: [] };
+
+  try {
+    const stored = localStorage.getItem('jula2026_overrides');
+    if (stored) manualOverrides = JSON.parse(stored);
+  } catch (e) {
+    console.warn('Fehler beim Laden der Overrides:', e);
+  }
 
   // ============================================
   // AUTH
@@ -135,6 +145,7 @@
       allEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       renderStats();
       renderTable();
+      populateConnDropdowns();
     } catch (err) {
       console.error('Fehler beim Laden:', err);
       if (tableBody) {
@@ -216,35 +227,171 @@
     exportGroupsXLSX(lastGroups);
   });
 
+  // Redeclare group DOM selectors that were replaced in variables block
+  const zeltGroesseInput = document.getElementById('zelt-groesse');
+  const calcGroupsBtn = document.getElementById('calc-groups-btn');
+  const groupsGrid = document.getElementById('groups-grid');
+  const exportGroupsBtn = document.getElementById('export-groups-btn');
+
   // ============================================
-  // ============================================
-  // ============================================
-  // GRAPH
+  // GRAPH LOGIK & MANUELLE OVERRIDES
   // ============================================
   let clusterActive = false;
   let currentDensity = 'normal';
+
   const toggleClusterBtn = document.getElementById('toggle-cluster-btn');
   const densityNormalBtn = document.getElementById('density-normal-btn');
   const densityTightBtn  = document.getElementById('density-tight-btn');
   const densitySuperBtn  = document.getElementById('density-super-btn');
 
+  // Overrides speichern
+  function saveOverrides() {
+    try {
+      localStorage.setItem('jula2026_overrides', JSON.stringify(manualOverrides));
+    } catch (e) {
+      console.error('Fehler beim Speichern der Overrides:', e);
+    }
+  }
+
+  // Gruppen stillschweigend neu berechnen, damit manuelle Klick-Änderungen sofort sichtbar sind
+  function recalculateGroupsSilently() {
+    if (allEntries.length === 0) return;
+    const size = parseInt(zeltGroesseInput?.value) || 5;
+    lastGroups = calculateGroups(allEntries, size, manualOverrides);
+    renderGroups(lastGroups);
+  }
+
+  // Hilfsfunktion zum automatischen Laden des Graphen
   function autoLoadGraph() {
     if (allEntries.length === 0) return;
 
-    // Button zum Bündeln nur anzeigen, wenn Zeltgruppen bereits berechnet wurden
+    // Bündeln-Button nur anzeigen, wenn Zeltgruppen bereits berechnet wurden
     if (lastGroups && lastGroups.length > 0) {
       if (toggleClusterBtn) toggleClusterBtn.style.display = 'inline-flex';
     } else {
       if (toggleClusterBtn) toggleClusterBtn.style.display = 'none';
     }
 
-    renderGraph('graph-container', allEntries, lastGroups, clusterActive, currentDensity);
+    renderGraph('graph-container', allEntries, lastGroups, clusterActive, currentDensity, manualOverrides);
   }
 
+  // Callback für D3-Klick auf eine Verbindungslinie
+  window.handleLinkClick = function (edgeKey, isManual) {
+    if (isManual) {
+      // Eine manuelle grüne Kante wurde angeklickt -> restlos löschen
+      manualOverrides.added = manualOverrides.added.filter(k => k !== edgeKey);
+    } else {
+      // Eine Standard-Wunschkante wurde angeklickt -> zwischen gelöst (broken) und normal wechseln
+      if (manualOverrides.broken.includes(edgeKey)) {
+        manualOverrides.broken = manualOverrides.broken.filter(k => k !== edgeKey);
+      } else {
+        manualOverrides.broken.push(edgeKey);
+      }
+    }
+    saveOverrides();
+    autoLoadGraph();
+    recalculateGroupsSilently();
+  };
+
+  //Dropdown-Menüs für manuelle Verbindungen befüllen
+  function populateConnDropdowns() {
+    if (!connSelect1 || !connSelect2) return;
+
+    // Alle eindeutigen Kinder extrahieren
+    const childrenMap = new Map();
+    allEntries.forEach(e => {
+      const key = makeKey(e.vorname, e.nachname);
+      childrenMap.set(key, `${e.vorname} ${e.nachname}`);
+      
+      // Auch Wunschpartner sammeln, falls diese keinen eigenen Eintrag haben
+      for (let i = 1; i <= 3; i++) {
+        const wv = e[`wunsch${i}_vorname`];
+        const wn = e[`wunsch${i}_nachname`];
+        if (wv && wn) {
+          const wKey = makeKey(wv, wn);
+          if (!childrenMap.has(wKey)) {
+            childrenMap.set(wKey, `${wv} ${wn}`);
+          }
+        }
+      }
+    });
+
+    // Alphabetisch nach Namen sortieren
+    const sorted = Array.from(childrenMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+
+    const optionsHtml = '<option value="">-- Kind wählen --</option>' + 
+      sorted.map(([key, name]) => `<option value="${key}">${esc(name)}</option>`).join('');
+
+    connSelect1.innerHTML = optionsHtml;
+    connSelect2.innerHTML = optionsHtml;
+  }
+
+  // Manuelle Verbindung hinzufügen
+  addConnBtn && addConnBtn.addEventListener('click', () => {
+    const k1 = connSelect1.value;
+    const k2 = connSelect2.value;
+
+    if (!k1 || !k2) {
+      alert('Bitte wähle zwei Kinder aus.');
+      return;
+    }
+    if (k1 === k2) {
+      alert('Ein Kind kann nicht mit sich selbst verbunden werden!');
+      return;
+    }
+
+    const edgeKey = [k1, k2].sort().join('||');
+    
+    // Falls Kante gelöst war, reaktivieren. Sonst neu hinzufügen.
+    manualOverrides.broken = manualOverrides.broken.filter(k => k !== edgeKey);
+    if (!manualOverrides.added.includes(edgeKey)) {
+      manualOverrides.added.push(edgeKey);
+    }
+
+    saveOverrides();
+    autoLoadGraph();
+    recalculateGroupsSilently();
+
+    // Select-Felder zurücksetzen
+    connSelect1.value = "";
+    connSelect2.value = "";
+  });
+
+  // Vollbildmodus umschalten
+  fullscreenBtn && fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      graphContainer.requestFullscreen().catch(err => {
+        console.error(`Fehler beim Vollbildmodus: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  // Resize-Verhalten im Vollbildmodus
+  document.addEventListener('fullscreenchange', () => {
+    autoLoadGraph();
+  });
+
+  // i-Info-Tooltip ein- und ausblenden
+  infoTooltipBtn && infoTooltipBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    infoTooltipContent.classList.toggle('hidden');
+  });
+
+  // Schließe den Tooltip bei Klick außerhalb
+  document.addEventListener('click', (e) => {
+    if (infoTooltipContent && !infoTooltipContent.classList.contains('hidden')) {
+      if (!infoTooltipContent.contains(e.target) && e.target !== infoTooltipBtn) {
+        infoTooltipContent.classList.add('hidden');
+      }
+    }
+  });
+
+  // Dichte-Schalter binden
   function setDensity(density) {
     currentDensity = density;
     
-    // Aktiven Button stylen und die anderen zurücksetzen
     [densityNormalBtn, densityTightBtn, densitySuperBtn].forEach(btn => {
       if (btn) {
         btn.classList.remove('active');
@@ -304,7 +451,7 @@
       return;
     }
 
-    lastGroups = calculateGroups(allEntries, size);
+    lastGroups = calculateGroups(allEntries, size, manualOverrides);
     renderGroups(lastGroups);
 
     // Bündeln-Button im Graph aktivieren und anzeigen
