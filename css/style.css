@@ -3,8 +3,35 @@
    CVJM Mössingen | Global Stylesheet
    ============================================ */
 
-/* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* --- Local Fonts (DSGVO-konform) --- */
+@font-face {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-style: normal;
+  src: url('../assets/fonts/Inter-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 500;
+  font-style: normal;
+  src: url('../assets/fonts/Inter-Medium.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 600;
+  font-style: normal;
+  src: url('../assets/fonts/Inter-SemiBold.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: normal;
+  src: url('../assets/fonts/Inter-Bold.woff2') format('woff2');
+  font-display: swap;
+}
 
 /* --- Design Tokens --- */
 :root {
@@ -1189,4 +1216,33 @@ input::placeholder {
   padding: 24px !important;
   overflow-y: auto !important;
   box-sizing: border-box !important;
+}
+
+/* Checkbox Styling für DSGVO-Einwilligung */
+.form-group-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 15px;
+  margin-bottom: 24px;
+}
+
+.form-group-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--cvjm-red);
+  cursor: pointer;
+}
+
+.form-group-checkbox label {
+  text-transform: none;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  line-height: 1.45;
+  cursor: pointer;
+  letter-spacing: normal;
+  margin-bottom: 0;
 }

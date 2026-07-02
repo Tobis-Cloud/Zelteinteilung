@@ -13,6 +13,7 @@
   const nachnameInput= document.getElementById('nachname');
   const submitBtn    = document.getElementById('submit-btn');
   const alertBox     = document.getElementById('alert-box');
+  const privacyConsent = document.getElementById('privacy-consent');
 
   // Wunschpartner-Felder
   const partnerFields = [
@@ -101,6 +102,7 @@
       vorname:  vornameInput.value.trim(),
       nachname: nachnameInput.value.trim(),
       partners,
+      consent:  privacyConsent ? privacyConsent.checked : false,
     };
   }
 
@@ -114,6 +116,7 @@
       return 'Die E-Mail-Adresse scheint ungültig zu sein.';
     if (!data.vorname) return 'Bitte gib den Vornamen deines Kindes ein.';
     if (!data.nachname) return 'Bitte gib den Nachnamen deines Kindes ein.';
+    if (!data.consent) return 'Bitte willige in die Verarbeitung der personenbezogenen Daten deines Kindes ein.';
 
     // Wunschpartner-Validierung: wenn einer der beiden Felder ausgefüllt, muss der andere auch gefüllt sein
     for (let i = 0; i < partnerFields.length; i++) {
