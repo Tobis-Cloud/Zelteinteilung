@@ -6,10 +6,11 @@ service cloud.firestore {
     // Hilfsfunktionen
     // ============================================
     
-    // Prüft, ob der Benutzer authentifiziert und kein anonymer Nutzer ist.
+    // Prüft, ob der Benutzer authentifiziert, seine E-Mail verifiziert und kein anonymer Nutzer ist.
     // Dies stellt sicher, dass nur regulär angelegte Konten (Admins) Zugriff erhalten.
     function isAdmin() {
       return request.auth != null 
+        && request.auth.token.email_verified == true
         && request.auth.token.firebase.sign_in_provider != 'anonymous'
         && (
           request.auth.token.email.endsWith('@cvjm-moessingen.de')
@@ -23,13 +24,11 @@ service cloud.firestore {
     // ============================================
     match /wuensche/{kindId} {
 
-      // ✅ ERSTELLEN: Öffentlich erlaubt, ABER nur wenn der Eintrag noch nicht existiert.
-      // Das verhindert serverseitig Doppeleinträge und filtert unerlaubte Felder.
+      // ✅ ERSTELLEN: Öffentlich erlaubt, ABER filtert unerlaubte Felder.
+      // Jeder neue Eintrag erhält eine zufällige ID zum Schutz vor Enumerationsangriffen.
       allow create: if
-        // Dokument darf noch nicht existieren
-        !exists(/databases/$(database)/documents/wuensche/$(kindId))
         // Struktur-Validierung: Nur definierte Felder sind beim Anlegen erlaubt
-        && request.resource.data.keys().hasOnly([
+        request.resource.data.keys().hasOnly([
           'vorname', 'nachname', 'email', 
           'wunsch1_vorname', 'wunsch1_nachname', 
           'wunsch2_vorname', 'wunsch2_nachname', 
@@ -47,8 +46,9 @@ service cloud.firestore {
         && request.resource.data.vorname.size() <= 50
         && request.resource.data.nachname.size() <= 50
         && request.resource.data.email.size() <= 100
-        // Datenintegrität: _kindId muss exakt mit der Dokument-ID übereinstimmen
-        && request.resource.data._kindId == kindId;
+        // Datenintegrität: _kindId muss ein valider String sein
+        && request.resource.data._kindId is string
+        && request.resource.data._kindId.size() <= 101;
 
       // 🔒 LESEN, ÄNDERN, LÖSCHEN: Nur für eingeloggte Admins (keine anonymen Nutzer)
       allow read, update, delete: if isAdmin();

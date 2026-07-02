@@ -154,7 +154,7 @@
 
     try {
       const kindId = normalizeKey(data.vorname, data.nachname);
-      const docRef = db.collection('wuensche').doc(kindId);
+      const collectionRef = db.collection('wuensche');
 
       // Dokument vorbereiten
       const docData = {
@@ -171,10 +171,8 @@
         _kindId:   kindId,
       };
 
-      // In Firestore speichern
-      // Da unbefugte Updates per Security Rules blockiert sind, wirft set()
-      // bei einem bereits existierenden Dokument automatisch einen 'permission-denied' Fehler.
-      await docRef.set(docData);
+      // In Firestore mit zufälliger ID speichern (Schutz vor Enumeration-Angriffen)
+      await collectionRef.add(docData);
 
       // Auf Erfolgsseite weiterleiten (Übertragung via sessionStorage statt URL-Parameter für DSGVO-Konformität)
       const summaryData = {

@@ -173,10 +173,26 @@
         .orderBy('timestamp', 'asc')
         .get();
 
-      allEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const rawEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Dubletten filtern (neueste Einträge überschreiben ältere, da wir nach timestamp aufsteigend sortiert haben)
+      const uniqueMap = new Map();
+      rawEntries.forEach(e => {
+        if (e.vorname && e.nachname) {
+          const key = makeKey(e.vorname, e.nachname);
+          uniqueMap.set(key, e);
+        }
+      });
+      allEntries = Array.from(uniqueMap.values());
+
       renderStats();
       renderTable();
       populateConnDropdowns();
+
+      // Zeltgruppen neu rendern, sobald die Wünsche geladen wurden
+      if (lastGroups && lastGroups.length > 0) {
+        renderGroups(lastGroups);
+      }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
       if (tableBody) {
