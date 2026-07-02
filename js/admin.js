@@ -175,15 +175,25 @@
 
       const rawEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Dubletten filtern (neueste Einträge überschreiben ältere, da wir nach timestamp aufsteigend sortiert haben)
-      const uniqueMap = new Map();
+      // Dubletten gruppieren (Option B) und NFC-Normalisierung anwenden
+      const groupedMap = new Map();
       rawEntries.forEach(e => {
         if (e.vorname && e.nachname) {
           const key = makeKey(e.vorname, e.nachname);
-          uniqueMap.set(key, e);
+          if (!groupedMap.has(key)) {
+            groupedMap.set(key, []);
+          }
+          groupedMap.get(key).push(e);
         }
       });
-      allEntries = Array.from(uniqueMap.values());
+
+      // allEntries enthält nun Objekte. Bei doppelten Einträgen nutzen wir den aktuellsten (letzten in der Liste),
+      // behalten aber eine Referenz auf alle Versionen (_allVersions), um dies visuell anzuzeigen.
+      allEntries = Array.from(groupedMap.values()).map(versions => {
+        const latest = versions[versions.length - 1];
+        latest._allVersions = versions;
+        return latest;
+      });
 
       renderStats();
       renderTable();
@@ -273,10 +283,14 @@
         ? e.timestamp.toDate().toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })
         : '–';
 
+      const versionBadge = e._allVersions && e._allVersions.length > 1
+        ? ` <span class="badge badge--orange" title="Dieser Name wurde ${e._allVersions.length} mal abgeschickt. Der neueste Eintrag wird unten angezeigt.">⚠️ ${e._allVersions.length} Einträge</span>`
+        : '';
+
       return `
         <tr>
           <td style="color:var(--gray-500);font-size:0.8rem;">${i + 1}</td>
-          <td><strong>${esc(e.vorname)} ${esc(e.nachname)}</strong></td>
+          <td><strong>${esc(e.vorname)} ${esc(e.nachname)}</strong>${versionBadge}</td>
           <td style="font-size:0.8rem;color:var(--gray-500);">${esc(e.email || '–')}</td>
           <td>${wishHtml}</td>
           <td style="font-size:0.8rem;color:var(--gray-500);">${ts}</td>
@@ -846,6 +860,7 @@
   function makeKey(vorname, nachname) {
     const normalize = s =>
       (s || '')
+        .normalize('NFC')
         .trim()
         .toLowerCase()
         .replace(/ä/g, 'ae')

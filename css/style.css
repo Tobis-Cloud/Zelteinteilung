@@ -760,6 +760,12 @@ input::placeholder {
   color: var(--cvjm-red);
 }
 
+.badge--orange {
+  background: #ffedd5;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+
 /* ============================================
    ADMIN – GRAPH
    ============================================ */

@@ -11,12 +11,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null 
         && request.auth.token.email_verified == true
-        && request.auth.token.firebase.sign_in_provider != 'anonymous'
-        && (
-          request.auth.token.email.endsWith('@cvjm-moessingen.de')
-          // Hier können bei Bedarf weitere Admin-E-Mail-Adressen (z. B. Gmail) hinzugefügt werden:
-          // || request.auth.token.email in ['beispiel@gmail.com']
-        );
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
     // ============================================

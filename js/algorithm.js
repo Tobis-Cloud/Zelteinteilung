@@ -293,6 +293,7 @@ function sortByConnectionStrength(keys, edgeWeights) {
 function makeKey(vorname, nachname) {
   const normalize = s =>
     (s || '')
+      .normalize('NFC')
       .trim()
       .toLowerCase()
       .replace(/ä/g, 'ae')

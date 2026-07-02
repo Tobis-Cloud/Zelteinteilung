@@ -41,7 +41,8 @@
    */
   function normalizeKey(vorname, nachname) {
     const normalize = (s) =>
-      s.trim()
+      s.normalize('NFC')
+        .trim()
         .toLowerCase()
         .replace(/ä/g, 'ae')
         .replace(/ö/g, 'oe')
