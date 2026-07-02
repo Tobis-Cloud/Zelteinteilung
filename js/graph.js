@@ -18,8 +18,9 @@
    * @param {string} containerId - ID des SVG-Container-Elements
    * @param {Array}  entries     - Firestore-Einträge
    * @param {Array}  groups      - Berechnete Zeltgruppen (optional, für Farben)
+   * @param {boolean} clusterActive - Ob Gruppen zentriert gebündelt werden sollen
    */
-  window.renderGraph = function (containerId, entries, groups = []) {
+  window.renderGraph = function (containerId, entries, groups = [], clusterActive = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -140,12 +141,39 @@
     const simulation = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(linksArr)
         .id(d => d.id)
-        .distance(120)
+        .distance(clusterActive ? 60 : 120)
         .strength(0.6)
       )
-      .force('charge', d3.forceManyBody().strength(-280))
+      .force('charge', d3.forceManyBody().strength(clusterActive ? -180 : -280))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(40));
+
+    // Falls Gruppen-Bündelung aktiv ist, berechne Anziehungskräfte zu den Gruppenzentren
+    if (clusterActive && groups && groups.length > 0) {
+      const numGroups = groups.length;
+      const radius = Math.min(width, height) * 0.3;
+      const groupCenters = groups.map((g, i) => {
+        const angle = (i / numGroups) * 2 * Math.PI;
+        return {
+          x: width / 2 + radius * Math.cos(angle),
+          y: height / 2 + radius * Math.sin(angle)
+        };
+      });
+
+      simulation
+        .force('x', d3.forceX(d => {
+          if (d.group >= 0 && groupCenters[d.group]) {
+            return groupCenters[d.group].x;
+          }
+          return width / 2;
+        }).strength(0.85))
+        .force('y', d3.forceY(d => {
+          if (d.group >= 0 && groupCenters[d.group]) {
+            return groupCenters[d.group].y;
+          }
+          return height / 2;
+        }).strength(0.85));
+    }
 
     // --- Links zeichnen ---
     const link = g.append('g')

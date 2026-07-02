@@ -115,6 +115,11 @@
       tabPanels.forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(`tab-${target}`)?.classList.add('active');
+
+      // Graph automatisch laden, sobald der Reiter geöffnet wird
+      if (target === 'graph') {
+        autoLoadGraph();
+      }
     });
   });
 
@@ -212,14 +217,45 @@
   });
 
   // ============================================
+  // ============================================
   // GRAPH
   // ============================================
+  let clusterActive = false;
+  const toggleClusterBtn = document.getElementById('toggle-cluster-btn');
+
+  function autoLoadGraph() {
+    if (allEntries.length === 0) return;
+
+    // Button zum Bündeln nur anzeigen, wenn Zeltgruppen bereits berechnet wurden
+    if (lastGroups && lastGroups.length > 0) {
+      if (toggleClusterBtn) toggleClusterBtn.style.display = 'inline-flex';
+    } else {
+      if (toggleClusterBtn) toggleClusterBtn.style.display = 'none';
+    }
+
+    renderGraph('graph-container', allEntries, lastGroups, clusterActive);
+  }
+
   loadGraphBtn && loadGraphBtn.addEventListener('click', () => {
     if (allEntries.length === 0) {
       alert('Keine Daten zum Anzeigen vorhanden.');
       return;
     }
-    renderGraph('graph-container', allEntries, lastGroups);
+    autoLoadGraph();
+  });
+
+  toggleClusterBtn && toggleClusterBtn.addEventListener('click', () => {
+    clusterActive = !clusterActive;
+    if (clusterActive) {
+      toggleClusterBtn.classList.remove('btn--outline');
+      toggleClusterBtn.classList.add('btn--primary');
+      toggleClusterBtn.innerHTML = '✨ Gruppen auflösen';
+    } else {
+      toggleClusterBtn.classList.remove('btn--primary');
+      toggleClusterBtn.classList.add('btn--outline');
+      toggleClusterBtn.innerHTML = '🔮 Gruppen bündeln';
+    }
+    autoLoadGraph();
   });
 
   // ============================================
@@ -236,9 +272,14 @@
     lastGroups = calculateGroups(allEntries, size);
     renderGroups(lastGroups);
 
-    // Graph auch aktualisieren wenn sichtbar
+    // Bündeln-Button im Graph aktivieren und anzeigen
+    if (toggleClusterBtn) {
+      toggleClusterBtn.style.display = 'inline-flex';
+    }
+
+    // Graph automatisch aktualisieren, falls das SVG-Element existiert
     if (document.getElementById('graph-svg')) {
-      renderGraph('graph-container', allEntries, lastGroups);
+      autoLoadGraph();
     }
 
     // Export-Button aktivieren
