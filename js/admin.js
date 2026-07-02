@@ -38,6 +38,12 @@
   const exportPngBtn  = document.getElementById('export-png-btn');
   const graphContainer = document.getElementById('graph-container');
 
+  // Gruppen DOM-Elemente
+  const zeltGroesseInput   = document.getElementById('zelt-groesse');
+  const calcGroupsBtn       = document.getElementById('calc-groups-btn');
+  const groupsGrid          = document.getElementById('groups-grid');
+  const exportGroupsBtn     = document.getElementById('export-groups-btn');
+
   // Graph Overrides & Tools
   const connSelect1 = document.getElementById('conn-select-1');
   const connSelect2 = document.getElementById('conn-select-2');
@@ -227,11 +233,7 @@
     exportGroupsXLSX(lastGroups);
   });
 
-  // Redeclare group DOM selectors that were replaced in variables block
-  const zeltGroesseInput = document.getElementById('zelt-groesse');
-  const calcGroupsBtn = document.getElementById('calc-groups-btn');
-  const groupsGrid = document.getElementById('groups-grid');
-  const exportGroupsBtn = document.getElementById('export-groups-btn');
+
 
   // ============================================
   // GRAPH LOGIK & MANUELLE OVERRIDES
