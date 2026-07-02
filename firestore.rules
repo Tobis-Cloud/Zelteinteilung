@@ -41,7 +41,9 @@ service cloud.firestore {
         // Keine übermäßig langen Eingaben (Schutz vor Missbrauch)
         && request.resource.data.vorname.size() <= 50
         && request.resource.data.nachname.size() <= 50
-        && request.resource.data.email.size() <= 100;
+        && request.resource.data.email.size() <= 100
+        // Datenintegrität: _kindId muss exakt mit der Dokument-ID übereinstimmen
+        && request.resource.data._kindId == kindId;
 
       // 🔒 LESEN, ÄNDERN, LÖSCHEN: Nur für eingeloggte Admins (keine anonymen Nutzer)
       allow read, update, delete: if isAdmin();

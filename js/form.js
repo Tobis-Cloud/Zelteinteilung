@@ -46,7 +46,9 @@
         .replace(/ö/g, 'oe')
         .replace(/ü/g, 'ue')
         .replace(/ß/g, 'ss')
-        .replace(/[^a-z0-9]/g, '_');
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
     return `${normalize(vorname)}_${normalize(nachname)}`;
   }
 
@@ -171,14 +173,19 @@
       // bei einem bereits existierenden Dokument automatisch einen 'permission-denied' Fehler.
       await docRef.set(docData);
 
-      // Auf Erfolgsseite weiterleiten (mit kodierten Daten für Zusammenfassung)
-      const summaryData = encodeURIComponent(JSON.stringify({
+      // Auf Erfolgsseite weiterleiten (Übertragung via sessionStorage statt URL-Parameter für DSGVO-Konformität)
+      const summaryData = {
         vorname:  data.vorname,
         nachname: data.nachname,
         email:    data.email,
         partners: data.partners,
-      }));
-      window.location.href = `success.html?data=${summaryData}`;
+      };
+      try {
+        sessionStorage.setItem('jula2026_summary', JSON.stringify(summaryData));
+      } catch (e) {
+        console.warn('sessionStorage nicht verfügbar:', e);
+      }
+      window.location.href = 'success.html';
 
     } catch (err) {
       console.error('Fehler beim Speichern:', err);

@@ -102,14 +102,16 @@
 
   <!-- ============ SCRIPTS ============ -->
   <script>
-    // Zusammenfassung aus URL-Parametern laden
+    // Zusammenfassung aus sessionStorage laden (DSGVO-konform)
     (function () {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const raw    = params.get('data');
+        const raw = sessionStorage.getItem('jula2026_summary');
         if (!raw) return;
 
-        const data = JSON.parse(decodeURIComponent(raw));
+        // Sofort aus sessionStorage löschen, um Datenrückstände im Speicher zu minimieren
+        sessionStorage.removeItem('jula2026_summary');
+
+        const data = JSON.parse(raw);
 
         const sumKind  = document.getElementById('sum-kind');
         const sumEmail = document.getElementById('sum-email');

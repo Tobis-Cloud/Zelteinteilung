@@ -80,12 +80,35 @@
   function showLogin() {
     loginSection.classList.remove('hidden');
     dashSection.classList.add('hidden');
+
+    // Sensible Daten aus Speicher und DOM löschen für DSGVO / Sicherheit bei Logout
+    allEntries = [];
+    lastGroups = [];
+    manualOverrides = { broken: [], added: [] };
+
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="5" class="table-empty">Daten gelöscht. Bitte anmelden.</td></tr>';
+    if (statTotal) statTotal.textContent = '–';
+    if (statWith) statWith.textContent = '–';
+    if (statWithout) statWithout.textContent = '–';
+    if (statFulfillmentRate) statFulfillmentRate.textContent = '–';
+    if (graphContainer) {
+      graphContainer.innerHTML = `
+        <div class="graph-empty">
+          <span class="icon">🔒</span>
+          <p>Bitte anmelden, um den Wunschgraphen anzuzeigen.</p>
+        </div>`;
+    }
+    if (groupsGrid) groupsGrid.innerHTML = '<p style="color:var(--gray-500);font-size:0.9rem;">Bitte anmelden, um die Zeltgruppen anzuzeigen.</p>';
+    if (connSelect1) connSelect1.innerHTML = '';
+    if (connSelect2) connSelect2.innerHTML = '';
+    if (adminEmailDisp) adminEmailDisp.textContent = '';
   }
 
-  function showDashboard(user) {
+  async function showDashboard(user) {
     loginSection.classList.add('hidden');
     dashSection.classList.remove('hidden');
     if (adminEmailDisp) adminEmailDisp.textContent = user.email;
+    await loadAdminState(); // Admin-Zustand (manuelle Anpassungen etc.) zuerst aus der Cloud laden
     loadEntries();
   }
 
@@ -805,9 +828,18 @@
   }
 
   function makeKey(vorname, nachname) {
-    const v = (vorname || '').toLowerCase().trim().replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue').replace('ß', 'ss');
-    const n = (nachname || '').toLowerCase().trim().replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue').replace('ß', 'ss');
-    return `${v}_${n}`.replace(/[^a-z0-9]/g, '_');
+    const normalize = s =>
+      (s || '')
+        .trim()
+        .toLowerCase()
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    return `${normalize(vorname)}_${normalize(nachname)}`;
   }
 
 })();
