@@ -1157,3 +1157,8 @@ input::placeholder {
 .link.manual {
   stroke-width: 3.5px;
 }
+
+/* Globale Hilfsklasse zum Ausblenden */
+.hidden {
+  display: none !important;
+}
