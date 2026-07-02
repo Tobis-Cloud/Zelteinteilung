@@ -1168,3 +1168,13 @@ input::placeholder {
 .hidden {
   display: none !important;
 }
+
+/* Orange Highlight für Wunsch-Klick */
+.member-item.highlight-orange {
+  border-color: #f97316 !important;
+  border-width: 2px !important;
+  background-color: #fff7ed !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease-in-out;
+}

@@ -246,21 +246,54 @@
   const densityTightBtn  = document.getElementById('density-tight-btn');
   const densitySuperBtn  = document.getElementById('density-super-btn');
 
-  // Overrides speichern
-  function saveOverrides() {
+  // Admin-Zustand in Firestore speichern (Synchronisierung für alle Admins)
+  async function saveAdminState() {
     try {
-      localStorage.setItem('jula2026_overrides', JSON.stringify(manualOverrides));
+      await db.collection('settings').doc('admin_state').set({
+        manualOverrides,
+        lastGroups,
+        calcMode: calcMode?.value || 'size',
+        zeltGroesse: parseInt(zeltGroesseInput?.value) || 5,
+        zeltAnzahl: parseInt(document.getElementById('zelt-anzahl')?.value) || 10,
+        zeltVariation: parseInt(document.getElementById('zelt-variation')?.value) || 1
+      });
     } catch (e) {
-      console.error('Fehler beim Speichern der Overrides:', e);
+      console.error('Fehler beim Speichern des Admin-Zustands:', e);
     }
   }
 
-  // Gruppen stillschweigend neu berechnen, damit manuelle Klick-Änderungen sofort sichtbar sind
-  function recalculateGroupsSilently() {
-    if (allEntries.length === 0) return;
-    const size = parseInt(zeltGroesseInput?.value) || 5;
-    lastGroups = calculateGroups(allEntries, size, manualOverrides);
-    renderGroups(lastGroups);
+  // Admin-Zustand aus Firestore laden
+  async function loadAdminState() {
+    try {
+      const doc = await db.collection('settings').doc('admin_state').get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.manualOverrides) manualOverrides = data.manualOverrides;
+        if (data.lastGroups) {
+          lastGroups = data.lastGroups;
+          renderGroups(lastGroups);
+          if (exportGroupsBtn) exportGroupsBtn.disabled = false;
+          if (editModeBtn) editModeBtn.disabled = false;
+        }
+        if (data.calcMode && calcMode) {
+          calcMode.value = data.calcMode;
+          if (data.calcMode === 'size') {
+            if (sizeModeInputs) sizeModeInputs.style.display = 'block';
+            if (countModeInputs) countModeInputs.style.display = 'none';
+          } else {
+            if (sizeModeInputs) sizeModeInputs.style.display = 'none';
+            if (countModeInputs) countModeInputs.style.display = 'flex';
+          }
+        }
+        if (data.zeltGroesse && zeltGroesseInput) zeltGroesseInput.value = data.zeltGroesse;
+        const za = document.getElementById('zelt-anzahl');
+        if (data.zeltAnzahl && za) za.value = data.zeltAnzahl;
+        const zv = document.getElementById('zelt-variation');
+        if (data.zeltVariation && zv) zv.value = data.zeltVariation;
+      }
+    } catch (e) {
+      console.warn('Fehler beim Laden des Admin-Zustands:', e);
+    }
   }
 
   // Hilfsfunktion zum automatischen Laden des Graphen
@@ -290,7 +323,7 @@
         manualOverrides.broken.push(edgeKey);
       }
     }
-    saveOverrides();
+    saveAdminState();
     autoLoadGraph();
     recalculateGroupsSilently();
   };
@@ -350,7 +383,7 @@
       manualOverrides.added.push(edgeKey);
     }
 
-    saveOverrides();
+    saveAdminState();
     autoLoadGraph();
     recalculateGroupsSilently();
 
@@ -493,6 +526,7 @@
     // Export-Button & Bearbeitungsmodus aktivieren
     if (exportGroupsBtn) exportGroupsBtn.disabled = false;
     if (editModeBtn) editModeBtn.disabled = false;
+    saveAdminState();
   });
 
   // Gruppen stillschweigend neu berechnen (für automatische Updates)
@@ -527,11 +561,9 @@
       const color = colors[i % colors.length];
       const membersHtml = g.members.map(m => {
         const memberKey = makeKey(m.vorname, m.nachname);
-        
-        // Finden des passenden DB-Eintrags für Wünsche
         const entry = allEntries.find(e => makeKey(e.vorname, e.nachname) === memberKey);
         const wishesHtml = [];
-
+        
         if (entry) {
           for (let w = 1; w <= 3; w++) {
             const wv = entry[`wunsch${w}_vorname`];
@@ -542,7 +574,9 @@
               const isFulfilled = g.members.some(other => makeKey(other.vorname, other.nachname) === wKey);
               
               wishesHtml.push(`
-                <span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;padding:2px 6px;border-radius:10px;background:${isFulfilled ? '#dcfce7' : '#fee2e2'};color:${isFulfilled ? '#15803d' : '#b91c1c'};border:1px solid ${isFulfilled ? '#bbf7d0' : '#fecaca'};">
+                <span class="wish-badge" 
+                      data-target-key="${wKey}" 
+                      style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;font-size:0.6rem;padding:1px 5px;border-radius:10px;background:${isFulfilled ? '#dcfce7' : '#fee2e2'};color:${isFulfilled ? '#15803d' : '#b91c1c'};border:1px solid ${isFulfilled ? '#bbf7d0' : '#fecaca'};">
                   ${isFulfilled ? '✅' : '❌'} ${esc(wv)} ${esc(wn)}
                 </span>
               `);
@@ -552,16 +586,16 @@
 
         const wishesText = wishesHtml.length > 0
           ? wishesHtml.join(' ')
-          : `<span style="font-size:0.65rem;color:var(--gray-400);">keine Wünsche</span>`;
+          : `<span style="font-size:0.6rem;color:var(--gray-400);">keine Wünsche</span>`;
 
         return `
           <li class="member-item" 
               ${isEditing ? 'draggable="true"' : ''} 
               data-member-key="${memberKey}" 
               data-group-index="${i}"
-              style="padding:8px;margin:6px 0;border-radius:var(--radius-sm);background:var(--white);border:1.5px solid var(--gray-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:6px;${isEditing ? 'cursor:move;border-style:dashed;border-color:var(--gray-400);' : ''}">
+              style="padding:6px 8px;margin:5px 0;border-radius:var(--radius-sm);background:var(--white);border:1.5px solid var(--gray-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:5px;${isEditing ? 'cursor:move;border-style:dashed;border-color:var(--gray-400);' : ''}">
             <div class="member-name-row" style="display:flex;justify-content:space-between;align-items:center;">
-              <span class="member-name" style="font-weight:600;font-size:0.825rem;color:var(--gray-900);">${esc(m.vorname)} ${esc(m.nachname)}</span>
+              <span class="member-name" style="font-weight:600;font-size:0.7rem;color:var(--gray-900);">${esc(m.vorname)} ${esc(m.nachname)}</span>
             </div>
             <div class="wishes-list" style="display:flex;flex-wrap:wrap;gap:3px;">
               ${wishesText}
@@ -658,6 +692,42 @@
       // Gruppen neu rendern & Graph-Knoten neu färben
       renderGroups(lastGroups);
       autoLoadGraph();
+      saveAdminState();
+    });
+  }
+
+  // ============================================
+  // KLICK-HIGHLIGHTING FÜR WUNSCHPARTNER
+  // ============================================
+  if (groupsGrid) {
+    groupsGrid.addEventListener('click', (e) => {
+      const badge = e.target.closest('.wish-badge');
+      
+      // Vorherige Highlights immer entfernen
+      document.querySelectorAll('.member-item.highlight-orange').forEach(item => {
+        item.classList.remove('highlight-orange');
+      });
+
+      if (badge) {
+        e.stopPropagation(); // Klick-Event stoppen, damit document-Klick es nicht sofort wieder löscht
+        const targetKey = badge.dataset.targetKey;
+        const targetItem = groupsGrid.querySelector(`.member-item[data-member-key="${targetKey}"]`);
+        
+        if (targetItem) {
+          targetItem.classList.add('highlight-orange');
+          // Sanft in Sichtweite scrollen, falls verdeckt
+          targetItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    });
+
+    // Highlights entfernen, wenn man irgendwo anders hinklickt
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.wish-badge')) {
+        document.querySelectorAll('.member-item.highlight-orange').forEach(item => {
+          item.classList.remove('highlight-orange');
+        });
+      }
     });
   }
 
